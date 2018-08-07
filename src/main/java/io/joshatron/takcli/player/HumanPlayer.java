@@ -1,6 +1,13 @@
-package io.joshatron.player;
+package io.joshatron.takcli.player;
 
-import io.joshatron.engine.*;
+import io.joshatron.takengine.board.BoardLocation;
+import io.joshatron.takengine.board.Direction;
+import io.joshatron.takengine.board.PieceType;
+import io.joshatron.takengine.engine.*;
+import io.joshatron.takengine.player.TakPlayer;
+import io.joshatron.takengine.turn.MoveTurn;
+import io.joshatron.takengine.turn.PlaceTurn;
+import io.joshatron.takengine.turn.Turn;
 
 import java.util.Scanner;
 
