@@ -101,7 +101,7 @@
                   <configuration>
                       <archive>
                           <manifest>
-                              <mainClass>io.joshatron.takcli.cli.App</mainClass>
+                              <mainClass>io.joshatron.tak.cli.app.App</mainClass>
                           </manifest>
                       </archive>
                   </configuration>
