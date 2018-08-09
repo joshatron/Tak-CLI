@@ -1,5 +1,7 @@
 package io.joshatron.tak.cli.app;
 
+import io.joshatron.tak.ai.neuralnet.FeedForwardNeuralNetwork;
+import io.joshatron.tak.ai.player.SimpleNeuralPlayer;
 import io.joshatron.tak.engine.game.*;
 import io.joshatron.tak.cli.player.HumanPlayer;
 import io.joshatron.tak.ai.player.RandomPlayer;
@@ -11,6 +13,7 @@ import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
+import java.io.File;
 import java.io.IOException;
 
 public class App
@@ -85,12 +88,8 @@ public class App
                     whitePlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    /*try {
-                        whitePlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("0.05_0.005_0.001_100_1000000.json")));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
                     whitePlayer = new RandomPlayer();
+                    //whitePlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("0.05_0.005_0.001_100_1000000.json")));
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");
@@ -102,12 +101,8 @@ public class App
                     blackPlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    /*try {
-                        blackPlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("0.005_0.1_0.001_50_10000000.json")));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
                     blackPlayer = new RandomPlayer();
+                    //blackPlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("3_0.01_0.01_0.0_40_10000000_master.json")));
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");
