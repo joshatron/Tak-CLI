@@ -19,6 +19,43 @@ public class App
 {
     public static void main(String[] args) {
         try {
+            LineReader playReader = LineReaderBuilder.builder()
+                    .terminal(TerminalBuilder.terminal())
+                    .completer(new StringsCompleter("play", "help", "exit"))
+                    .build();
+
+            System.out.println("---------------------");
+            System.out.println("| Welcome to TakCLI |");
+            System.out.println("---------------------");
+            System.out.println();
+
+            while(true) {
+                String input = playReader.readLine("> ").toLowerCase().trim();
+
+                if(input.equals("play")) {
+                    play();
+                }
+                else if(input.equals("help")) {
+                    System.out.println("The following is a list of what you can do:");
+                    System.out.println("  play- give parameters for playing one or more games.");
+                    System.out.println("  help- displays this help message.");
+                    System.out.println("  exit- exits the program.");
+                }
+                else if(input.equals("exit")) {
+                    System.exit(0);
+                }
+                else {
+                    System.out.println("Please choose a valid option. Type help to see options.");
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void play() {
+        try {
             LineReader nullReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
                     .completer(new NullCompleter())
@@ -41,13 +78,11 @@ public class App
             TakPlayer whitePlayer;
             TakPlayer blackPlayer;
 
-            System.out.println("---------------------");
-            System.out.println("| Welcome to TakCLI |");
-            System.out.println("---------------------");
-            System.out.println();
-
             while (true) {
-                String input = nullReader.readLine("How many games would you like to play? ").trim();
+                String input = nullReader.readLine("How many games would you like to play? ").toLowerCase().trim();
+                if(input.equals("exit")) {
+                    System.exit(0);
+                }
                 try {
                     games = Integer.parseInt(input);
                     break;
@@ -56,7 +91,10 @@ public class App
                 }
             }
             while (true) {
-                String input = boardReader.readLine("What size board would you like to play on? ").trim();
+                String input = boardReader.readLine("What size board would you like to play on? ").toLowerCase().trim();
+                if(input.equals("exit")) {
+                    System.exit(0);
+                }
                 try {
                     size = Integer.parseInt(input);
                     if(size == 3 || size == 4 || size == 5 || size == 6 || size == 8) {
@@ -70,7 +108,10 @@ public class App
                 }
             }
             while (true) {
-                String input = whiteReader.readLine("Who goes first, white or black? ").trim().toLowerCase();
+                String input = whiteReader.readLine("Who goes first, white or black? ").toLowerCase().trim();
+                if(input.equals("exit")) {
+                    System.exit(0);
+                }
                 if (input.equals("white")) {
                     firstPlayer = Player.WHITE;
                     break;
@@ -82,7 +123,10 @@ public class App
                 }
             }
             while (true) {
-                String input = playerReader.readLine("Is white a human or AI? ").trim().toLowerCase();
+                String input = playerReader.readLine("Is white a human or AI? ").toLowerCase().trim();
+                if(input.equals("exit")) {
+                    System.exit(0);
+                }
                 if (input.equals("human")) {
                     whitePlayer = new HumanPlayer();
                     break;
@@ -95,7 +139,10 @@ public class App
                 }
             }
             while (true) {
-                String input = playerReader.readLine("Is black a human or AI? ").trim().toLowerCase();
+                String input = playerReader.readLine("Is black a human or AI? ").toLowerCase().trim();
+                if(input.equals("exit")) {
+                    System.exit(0);
+                }
                 if (input.equals("human")) {
                     blackPlayer = new HumanPlayer();
                     break;
