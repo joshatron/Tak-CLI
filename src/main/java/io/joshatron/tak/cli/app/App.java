@@ -155,7 +155,7 @@ public class App
                 }
             }
 
-            GameSetResult results = Games.playGames(games, size, firstPlayer, whitePlayer, blackPlayer, new CLIHooks());
+            GameSetResult results = new Games(games, size, firstPlayer, whitePlayer, blackPlayer, new CLIHooks()).playGames();
 
             if (results.getWhiteWins() > results.getBlackWins()) {
                 System.out.println("White is the winner " + results.getWhiteWins() + ":" + results.getBlackWins());
