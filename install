@@ -7,4 +7,4 @@ command -v mvn >/dev/null 2>&1 || { echo >&2 "Maven is required for setup. Abort
 mvn clean install
 
 mkdir -p cli/
-cp tak-cli/target/tak-cli*.jar cli/
+cp target/tak-cli*.jar cli/
