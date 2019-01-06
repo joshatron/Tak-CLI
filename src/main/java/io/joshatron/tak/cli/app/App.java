@@ -1,27 +1,24 @@
 package io.joshatron.tak.cli.app;
 
-import io.joshatron.tak.ai.neuralnet.FeedForwardNeuralNetwork;
-import io.joshatron.tak.ai.player.SimpleNeuralPlayer;
-import io.joshatron.tak.engine.game.*;
-import io.joshatron.tak.cli.player.HumanPlayer;
-import io.joshatron.tak.ai.player.RandomPlayer;
-import io.joshatron.tak.engine.player.TakPlayer;
+import io.joshatron.tak.cli.app.local.LocalPlay;
+import io.joshatron.tak.cli.app.server.ServerPlay;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
-import java.io.File;
 import java.io.IOException;
 
 public class App
 {
     public static void main(String[] args) {
         try {
+            ServerPlay serverPlay = null;
+            LocalPlay localPlay = null;
+
             LineReader playReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("play", "help", "exit"))
+                    .completer(new StringsCompleter("local", "server", "help", "exit"))
                     .build();
 
             System.out.println("---------------------");
@@ -32,138 +29,33 @@ public class App
             while(true) {
                 String input = playReader.readLine("> ").toLowerCase().trim();
 
-                if(input.equals("play")) {
-                    play();
+                if(input.equals("local")) {
+                    if(localPlay == null) {
+                        localPlay = new LocalPlay();
+                    }
+                    localPlay.play();
+                }
+                else if(input.equals("server")) {
+                    if(serverPlay == null) {
+                        serverPlay = new ServerPlay();
+                    }
+                    serverPlay.play();
                 }
                 else if(input.equals("help")) {
                     System.out.println("The following is a list of what you can do:");
-                    System.out.println("  play- give parameters for playing one or more games.");
+                    System.out.println("  local- give parameters for playing one or more games.");
+                    System.out.println("  server- connect to a server to play.");
                     System.out.println("  help- displays this help message.");
                     System.out.println("  exit- exits the program.");
                 }
                 else if(input.equals("exit")) {
-                    System.exit(0);
+                    break;
                 }
                 else {
                     System.out.println("Please choose a valid option. Type help to see options.");
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void play() {
-        try {
-            LineReader nullReader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.terminal())
-                    .completer(new NullCompleter())
-                    .build();
-            LineReader boardReader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("3","4","5","6","8"))
-                    .build();
-            LineReader whiteReader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("white","black"))
-                    .build();
-            LineReader playerReader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("human","ai"))
-                    .build();
-            int games;
-            int size;
-            Player firstPlayer;
-            TakPlayer whitePlayer;
-            TakPlayer blackPlayer;
-
-            while (true) {
-                String input = nullReader.readLine("How many games would you like to play? ").toLowerCase().trim();
-                if(input.equals("exit")) {
-                    System.exit(0);
-                }
-                try {
-                    games = Integer.parseInt(input);
-                    break;
-                } catch (Exception e) {
-                    System.out.println("Invalid number. Please enter a valid number greater than 0.");
-                }
-            }
-            while (true) {
-                String input = boardReader.readLine("What size board would you like to play on? ").toLowerCase().trim();
-                if(input.equals("exit")) {
-                    System.exit(0);
-                }
-                try {
-                    size = Integer.parseInt(input);
-                    if(size == 3 || size == 4 || size == 5 || size == 6 || size == 8) {
-                        break;
-                    }
-                    else {
-                        System.out.println("Invalid number Please enter 3, 4, 5, 6, or 8.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("Invalid number Please enter 3, 4, 5, 6, or 8.");
-                }
-            }
-            while (true) {
-                String input = whiteReader.readLine("Who goes first, white or black? ").toLowerCase().trim();
-                if(input.equals("exit")) {
-                    System.exit(0);
-                }
-                if (input.equals("white")) {
-                    firstPlayer = Player.WHITE;
-                    break;
-                } else if (input.equals("black")) {
-                    firstPlayer = Player.BLACK;
-                    break;
-                } else {
-                    System.out.println("Invalid input. Please enter black or white.");
-                }
-            }
-            while (true) {
-                String input = playerReader.readLine("Is white a human or AI? ").toLowerCase().trim();
-                if(input.equals("exit")) {
-                    System.exit(0);
-                }
-                if (input.equals("human")) {
-                    whitePlayer = new HumanPlayer();
-                    break;
-                } else if (input.equals("ai")) {
-                    whitePlayer = new RandomPlayer();
-                    //whitePlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("0.05_0.005_0.001_100_1000000.json")));
-                    break;
-                } else {
-                    System.out.println("Invalid input. Please enter human or ai.");
-                }
-            }
-            while (true) {
-                String input = playerReader.readLine("Is black a human or AI? ").toLowerCase().trim();
-                if(input.equals("exit")) {
-                    System.exit(0);
-                }
-                if (input.equals("human")) {
-                    blackPlayer = new HumanPlayer();
-                    break;
-                } else if (input.equals("ai")) {
-                    blackPlayer = new RandomPlayer();
-                    //blackPlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("3_0.01_0.01_0.0_40_10000000_master.json")));
-                    break;
-                } else {
-                    System.out.println("Invalid input. Please enter human or ai.");
-                }
-            }
-
-            GameSetResult results = new Games(games, size, firstPlayer, whitePlayer, blackPlayer, new CLIHooks()).playGames();
-
-            if (results.getWhiteWins() > results.getBlackWins()) {
-                System.out.println("White is the winner " + results.getWhiteWins() + ":" + results.getBlackWins());
-            } else if (results.getWhiteWins() < results.getBlackWins()) {
-                System.out.println("Black is the winner " + results.getBlackWins() + ":" + results.getWhiteWins());
-            } else {
-                System.out.println("It's a tie! Both players won the same number of games.");
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,4 +1,4 @@
-package io.joshatron.tak.cli.player;
+package io.joshatron.tak.cli.app.local;
 
 import io.joshatron.tak.engine.board.BoardLocation;
 import io.joshatron.tak.engine.board.Direction;

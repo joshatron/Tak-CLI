@@ -1,4 +1,4 @@
-package io.joshatron.tak.cli.app;
+package io.joshatron.tak.cli.app.local;
 
 import io.joshatron.tak.engine.game.GameHooks;
 import io.joshatron.tak.engine.game.GameResult;
