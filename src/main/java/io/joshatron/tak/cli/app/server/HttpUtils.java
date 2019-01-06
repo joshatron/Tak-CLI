@@ -6,11 +6,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -114,6 +117,28 @@ public class HttpUtils {
     public boolean authenticate(String username, String password) {
         HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
         request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                this.username = username;
+                this.password = password;
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean register(String username, String password) {
+        HttpPost request = new HttpPost(serverUrl + "/account/register");
+        JSONObject body = new JSONObject();
+        body.put("username", username);
+        body.put("password", password);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
 
         try {
             HttpResponse response = client.execute(request);
