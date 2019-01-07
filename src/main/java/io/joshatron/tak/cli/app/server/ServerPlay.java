@@ -2,6 +2,7 @@ package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.response.GameNotifications;
 import io.joshatron.tak.cli.app.server.response.SocialNotifications;
+import io.joshatron.tak.cli.app.server.response.User;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.completer.NullCompleter;
@@ -9,13 +10,17 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class ServerPlay {
 
     private ServerConfig config;
     private HttpUtils httpUtils;
+    private HashMap<String, String> userMap;
 
     public ServerPlay() {
+        userMap = new HashMap<>();
+
         try {
             LineReader nullReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
@@ -64,13 +69,13 @@ public class ServerPlay {
                     .build();
             LineReader commandReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("exit", "logout", "help", "changePass", "changeName"))
+                    .completer(new StringsCompleter("exit", "logout", "help", "cpass", "cname", "ifrequests", "ofrequests"))
                     .build();
 
             while(true) {
                 String input = commandReader.readLine(createPrompt()).toLowerCase().trim();
 
-                if(input.equals("changepass")) {
+                if(input.equals("cpass")) {
                     String newPass = nullReader.readLine("New password: ", '*');
                     if(httpUtils.changePassword(newPass)) {
                         System.out.println("Password successfully changed.");
@@ -79,7 +84,7 @@ public class ServerPlay {
                         System.out.println("Could not change password.");
                     }
                 }
-                else if(input.equals("changename")) {
+                else if(input.equals("cname")) {
                     String newName = nullReader.readLine("New username: ");
                     if(httpUtils.changeUsername(newName)) {
                         config.setUsername(newName);
@@ -87,6 +92,32 @@ public class ServerPlay {
                     }
                     else {
                         System.out.println("Could not change username.");
+                    }
+                }
+                else if(input.equals("ifrequests")) {
+                    User[] users = httpUtils.getIncomingFriendRequests();
+                    if(users != null && users.length > 0) {
+                        System.out.println("Users requesting to be friends with you:");
+                        for (User user : users) {
+                            System.out.println(user.getUsername());
+                            userMap.put(user.getUsername(), user.getUserId());
+                        }
+                    }
+                    else {
+                        System.out.println("You have no incoming friend requests.");
+                    }
+                }
+                else if(input.equals("ofrequests")) {
+                    User[] users = httpUtils.getOutgoingFriendRequests();
+                    if(users != null && users.length > 0) {
+                        System.out.println("Users you are requesting to be friends with:");
+                        for (User user : users) {
+                            System.out.println(user.getUsername());
+                            userMap.put(user.getUsername(), user.getUserId());
+                        }
+                    }
+                    else {
+                        System.out.println("You have no outgoing friend requests.");
                     }
                 }
                 else if(input.equals("logout")) {
@@ -104,8 +135,10 @@ public class ServerPlay {
                     System.out.println("  yt- your turn for a game");
                     System.out.println();
                     System.out.println("The following is a list of what you can do:");
-                    System.out.println("  changePass- change your password");
-                    System.out.println("  changeName- change your username");
+                    System.out.println("  cpass- change your password");
+                    System.out.println("  cname- change your username");
+                    System.out.println("  ifrequests- get a list of incoming friend requests");
+                    System.out.println("  ofrequests- get a list of outgoing friend requests");
                     System.out.println("  help- display this help message");
                     System.out.println("  logout- logs out of user and goes back to the main menu");
                     System.out.println("  exit- exits back to the main menu");

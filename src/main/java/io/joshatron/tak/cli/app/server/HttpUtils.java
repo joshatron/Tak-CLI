@@ -2,6 +2,7 @@ package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.response.GameNotifications;
 import io.joshatron.tak.cli.app.server.response.SocialNotifications;
+import io.joshatron.tak.cli.app.server.response.User;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -20,6 +21,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.net.ssl.SSLContext;
@@ -32,6 +34,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
 
 public class HttpUtils {
@@ -195,6 +198,54 @@ public class HttpUtils {
         }
 
         return false;
+    }
+
+    public User[] getIncomingFriendRequests() {
+        HttpGet request = new HttpGet(serverUrl + "/social/request/incoming");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<User> users = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    users.add(new User(json.getJSONObject(i).getString("username"), json.getJSONObject(i).getString("userId")));
+                }
+
+                return users.toArray(new User[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public User[] getOutgoingFriendRequests() {
+        HttpGet request = new HttpGet(serverUrl + "/social/request/outgoing");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<User> users = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    users.add(new User(json.getJSONObject(i).getString("username"), json.getJSONObject(i).getString("userId")));
+                }
+
+                return users.toArray(new User[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public SocialNotifications getSocialNotifications() {
