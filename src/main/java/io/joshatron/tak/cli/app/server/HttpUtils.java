@@ -38,6 +38,7 @@ public class HttpUtils {
 
     private HttpClient client;
     private String serverUrl;
+
     private String username;
     private String password;
 
@@ -154,6 +155,48 @@ public class HttpUtils {
         return false;
     }
 
+    public boolean changePassword(String newPass) {
+        HttpPost request = new HttpPost(serverUrl + "/account/changepass");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", newPass);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                this.password = newPass;
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean changeUsername(String newName) {
+        HttpPost request = new HttpPost(serverUrl + "/account/changename");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", newName);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                this.username = newName;
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public SocialNotifications getSocialNotifications() {
         HttpGet request = new HttpGet(serverUrl + "/social/notifications");
         request.setHeader("Authorization", getBasicAuthString(username, password));
@@ -192,5 +235,14 @@ public class HttpUtils {
 
     public String getUsername() {
         return username;
+    }
+
+    public void logout() {
+        username = null;
+        password = null;
+    }
+
+    public void nullServerUrl() {
+        this.serverUrl = null;
     }
 }

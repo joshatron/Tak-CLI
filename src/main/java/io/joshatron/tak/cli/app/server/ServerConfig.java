@@ -37,8 +37,12 @@ public class ServerConfig {
 
     public void exportConfig() {
         JSONObject json = new JSONObject();
-        json.put("serverUrl", serverUrl);
-        json.put("username", username);
+        if(serverUrl != null) {
+            json.put("serverUrl", serverUrl);
+        }
+        if(username != null) {
+            json.put("username", username);
+        }
 
         try {
             FileUtils.writeStringToFile(new File(configFile), json.toString(4), Charset.defaultCharset());
