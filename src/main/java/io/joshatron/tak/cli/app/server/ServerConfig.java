@@ -28,8 +28,12 @@ public class ServerConfig {
         try {
             String input = FileUtils.readFileToString(new File(configFile), Charset.defaultCharset());
             JSONObject json = new JSONObject(input);
-            serverUrl = json.getString("serverUrl");
-            username = json.getString("username");
+            if(json.has("serverUrl")) {
+                serverUrl = json.getString("serverUrl");
+            }
+            if(json.has("username")) {
+                username = json.getString("username");
+            }
         } catch (IOException e) {
             System.out.println("Could not find server config, creating new one.");
         }

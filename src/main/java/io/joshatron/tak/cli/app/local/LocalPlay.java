@@ -94,7 +94,7 @@ public class LocalPlay {
                     whitePlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    whitePlayer = new MiniMaxPlayer(new DefensiveEvaluator(), 3);
+                    whitePlayer = new MiniMaxPlayer(new DefensiveEvaluator(), depthFromBoardSize(size));
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");
@@ -109,7 +109,7 @@ public class LocalPlay {
                     blackPlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    blackPlayer = new MiniMaxPlayer(new DefensiveEvaluator(), 3);
+                    blackPlayer = new MiniMaxPlayer(new DefensiveEvaluator(), depthFromBoardSize(size));
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");
@@ -127,6 +127,23 @@ public class LocalPlay {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private int depthFromBoardSize(int size) {
+        switch (size) {
+            case 3:
+                return 5;
+            case 4:
+                return 4;
+            case 5:
+                return 3;
+            case 6:
+                return 3;
+            case 8:
+                return 2;
+            default:
+                return 2;
         }
     }
 }

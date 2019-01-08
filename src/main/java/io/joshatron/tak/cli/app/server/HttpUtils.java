@@ -6,6 +6,7 @@ import io.joshatron.tak.cli.app.server.response.User;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
@@ -330,6 +331,38 @@ public class HttpUtils {
         }
 
         return null;
+    }
+
+    public boolean createFriendRequest(String id) {
+        HttpPost request = new HttpPost(serverUrl + "/social/request/create/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean deleteFriendRequest(String id) {
+        HttpDelete request = new HttpDelete(serverUrl + "/social/request/cancel/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public SocialNotifications getSocialNotifications() {
