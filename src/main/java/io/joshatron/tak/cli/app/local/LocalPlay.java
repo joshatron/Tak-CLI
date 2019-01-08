@@ -1,5 +1,7 @@
 package io.joshatron.tak.cli.app.local;
 
+import io.joshatron.tak.ai.player.DefensiveEvaluator;
+import io.joshatron.tak.ai.player.MiniMaxPlayer;
 import io.joshatron.tak.ai.player.RandomPlayer;
 import io.joshatron.tak.engine.game.GameSetResult;
 import io.joshatron.tak.engine.game.Games;
@@ -92,8 +94,7 @@ public class LocalPlay {
                     whitePlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    whitePlayer = new RandomPlayer();
-                    //whitePlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("0.05_0.005_0.001_100_1000000.json")));
+                    whitePlayer = new MiniMaxPlayer(new DefensiveEvaluator(), 3);
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");
@@ -108,8 +109,7 @@ public class LocalPlay {
                     blackPlayer = new HumanPlayer();
                     break;
                 } else if (input.equals("ai")) {
-                    blackPlayer = new RandomPlayer();
-                    //blackPlayer = new SimpleNeuralPlayer(new FeedForwardNeuralNetwork(new File("3_0.01_0.01_0.0_40_10000000_master.json")));
+                    blackPlayer = new MiniMaxPlayer(new DefensiveEvaluator(), 3);
                     break;
                 } else {
                     System.out.println("Invalid input. Please enter human or ai.");

@@ -101,6 +101,42 @@ public class HttpUtils {
         return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
 
+    public User getUserFromUsername(String username) {
+        HttpGet request = new HttpGet(serverUrl + "/account/user?user=" + username);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONObject json = new JSONObject(contents);
+
+                return new User(json.getString("username"), json.getString("userId"));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public User getUserFromUserId(String userId) {
+        HttpGet request = new HttpGet(serverUrl + "/account/user?id=" + userId);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONObject json = new JSONObject(contents);
+
+                return new User(json.getString("username"), json.getString("userId"));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public boolean checkConnection() {
         HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
         request.setHeader("Authorization", getBasicAuthString("test", "test"));
@@ -226,6 +262,54 @@ public class HttpUtils {
 
     public User[] getOutgoingFriendRequests() {
         HttpGet request = new HttpGet(serverUrl + "/social/request/outgoing");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<User> users = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    users.add(new User(json.getJSONObject(i).getString("username"), json.getJSONObject(i).getString("userId")));
+                }
+
+                return users.toArray(new User[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public User[] getFriends() {
+        HttpGet request = new HttpGet(serverUrl + "/social/user/friends");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<User> users = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    users.add(new User(json.getJSONObject(i).getString("username"), json.getJSONObject(i).getString("userId")));
+                }
+
+                return users.toArray(new User[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public User[] getBlocking() {
+        HttpGet request = new HttpGet(serverUrl + "/social/user/blocking");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {

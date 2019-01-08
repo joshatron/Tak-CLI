@@ -10,16 +10,16 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 public class ServerPlay {
 
     private ServerConfig config;
     private HttpUtils httpUtils;
-    private HashMap<String, String> userMap;
+    private ArrayList<User> users;
 
     public ServerPlay() {
-        userMap = new HashMap<>();
+        users = new ArrayList<>();
 
         try {
             LineReader nullReader = LineReaderBuilder.builder()
@@ -69,7 +69,10 @@ public class ServerPlay {
                     .build();
             LineReader commandReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("exit", "logout", "help", "cpass", "cname", "ifrequests", "ofrequests"))
+                    .completer(new StringsCompleter("exit", "logout", "help", "cpass", "cname", "ifrequests", "ofrequests",
+                               "friends", "blocks", "frequest", "fcancel", "frespond", "unfriend", "block", "unblock",
+                               "msend", "msearch", "igrequests", "ogrequests", "grequest", "gcancel", "grespond", "grand",
+                               "grandmake", "granddel", "games", "myturn", "game", "play"))
                     .build();
 
             while(true) {
@@ -100,7 +103,7 @@ public class ServerPlay {
                         System.out.println("Users requesting to be friends with you:");
                         for (User user : users) {
                             System.out.println(user.getUsername());
-                            userMap.put(user.getUsername(), user.getUserId());
+                            this.users.add(user);
                         }
                     }
                     else {
@@ -113,12 +116,98 @@ public class ServerPlay {
                         System.out.println("Users you are requesting to be friends with:");
                         for (User user : users) {
                             System.out.println(user.getUsername());
-                            userMap.put(user.getUsername(), user.getUserId());
+                            this.users.add(user);
                         }
                     }
                     else {
                         System.out.println("You have no outgoing friend requests.");
                     }
+                }
+                else if(input.equals("friends")) {
+                    User[] users = httpUtils.getFriends();
+                    if(users != null && users.length > 0) {
+                        System.out.println("Your friends:");
+                        for (User user : users) {
+                            System.out.println(user.getUsername());
+                            this.users.add(user);
+                        }
+                    }
+                    else {
+                        System.out.println("Could not find any friends.");
+                    }
+                }
+                else if(input.equals("blocks")) {
+                    User[] users = httpUtils.getBlocking();
+                    if(users != null && users.length > 0) {
+                        System.out.println("Users you have blocked:");
+                        for (User user : users) {
+                            System.out.println(user.getUsername());
+                            this.users.add(user);
+                        }
+                    }
+                    else {
+                        System.out.println("Could not find any blocks.");
+                    }
+                }
+                else if(input.equals("frequest")) {
+
+                }
+                else if(input.equals("fcancel")) {
+
+                }
+                else if(input.equals("frespond")) {
+
+                }
+                else if(input.equals("unfriend")) {
+
+                }
+                else if(input.equals("block")) {
+
+                }
+                else if(input.equals("unblock")) {
+
+                }
+                else if(input.equals("msend")) {
+
+                }
+                else if(input.equals("msearch")) {
+
+                }
+                else if(input.equals("igrequests")) {
+
+                }
+                else if(input.equals("ogrequests")) {
+
+                }
+                else if(input.equals("grequest")) {
+
+                }
+                else if(input.equals("gcancel")) {
+
+                }
+                else if(input.equals("grespond")) {
+
+                }
+                else if(input.equals("grand")) {
+
+                }
+                else if(input.equals("grandmake")) {
+
+                }
+                else if(input.equals("granddel")) {
+
+                }
+                else if(input.equals("games")) {
+
+                }
+                else if(input.equals("myturn")) {
+
+                }
+                else if(input.equals("game")) {
+
+                }
+                else if(input.equals("play")) {
+
                 }
                 else if(input.equals("logout")) {
                     config.setUsername(null);
@@ -139,6 +228,28 @@ public class ServerPlay {
                     System.out.println("  cname- change your username");
                     System.out.println("  ifrequests- get a list of incoming friend requests");
                     System.out.println("  ofrequests- get a list of outgoing friend requests");
+                    System.out.println("  friends- get a list of all your friends");
+                    System.out.println("  blocks- get a list of all the users you are blocking");
+                    System.out.println("  frequest- create a friend request");
+                    System.out.println("  fcancel- cancel a friend request");
+                    System.out.println("  frespond- respond to a friend request");
+                    System.out.println("  unfriend- unfriend a user");
+                    System.out.println("  block- block a user");
+                    System.out.println("  unblock- unblock a user");
+                    System.out.println("  msend- send a message to another user");
+                    System.out.println("  msearch- search your messages");
+                    System.out.println("  igrequests- get a list of incoming game requests");
+                    System.out.println("  ogrequests- get a list of outgoing game requests");
+                    System.out.println("  grequest- create a game request");
+                    System.out.println("  gcancel- cancel a game request");
+                    System.out.println("  grespond- respond to a game request");
+                    System.out.println("  grand- check the size game of your random game request");
+                    System.out.println("  grandmake- create a request for a game with a random user");
+                    System.out.println("  granddel- cancel a random game request");
+                    System.out.println("  games- get a summary of all your open games");
+                    System.out.println("  myturn- get a summary of all your open games where it is your turn");
+                    System.out.println("  game- get a detailed view of a specific game");
+                    System.out.println("  play- open a detailed view of a game and make a turn");
                     System.out.println("  help- display this help message");
                     System.out.println("  logout- logs out of user and goes back to the main menu");
                     System.out.println("  exit- exits back to the main menu");
@@ -215,5 +326,37 @@ public class ServerPlay {
 
         return config.getUsername() + " fr:" + social.getFriendRequests() + "|ur:" + social.getUnreadMessages() +
                "|gr:" + game.getGameRequests() + "|yt:" + game.getYourTurn() + "> ";
+    }
+
+    private String getUsernameFromId(String id) {
+        for(User user : users) {
+            if(user.getUserId().equalsIgnoreCase(id)) {
+                return user.getUsername();
+            }
+        }
+
+        User user = httpUtils.getUserFromUserId(id);
+        if(user != null) {
+            users.add(user);
+            return user.getUsername();
+        }
+
+        return null;
+    }
+
+    private String getIdFromUsername(String username) {
+        for(User user : users) {
+            if(user.getUsername().equalsIgnoreCase(username)) {
+                return user.getUsername();
+            }
+        }
+
+        User user = httpUtils.getUserFromUsername(username);
+        if(user != null) {
+            users.add(user);
+            return user.getUserId();
+        }
+
+        return null;
     }
 }
