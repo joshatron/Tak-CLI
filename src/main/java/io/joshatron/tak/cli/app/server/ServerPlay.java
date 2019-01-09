@@ -1,6 +1,8 @@
 package io.joshatron.tak.cli.app.server;
 
+import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.GameNotifications;
+import io.joshatron.tak.cli.app.server.response.Message;
 import io.joshatron.tak.cli.app.server.response.SocialNotifications;
 import io.joshatron.tak.cli.app.server.response.User;
 import org.jline.reader.LineReader;
@@ -11,6 +13,7 @@ import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ServerPlay {
 
@@ -79,8 +82,8 @@ public class ServerPlay {
                     .terminal(TerminalBuilder.terminal())
                     .completer(new StringsCompleter("exit", "logout", "help", "cpass", "cname", "ifrequests", "ofrequests",
                                "friends", "blocks", "frequest", "fcancel", "faccept", "fdeny", "unfriend", "block", "unblock",
-                               "msend", "msearch", "igrequests", "ogrequests", "grequest", "gcancel", "gaccept", "gdeny",
-                               "grand", "grandmake", "granddel", "games", "myturn", "game", "play"))
+                               "msend", "munread", "mread", "muser", "igrequests", "ogrequests", "grequest", "gcancel",
+                               "gaccept", "gdeny", "grand", "grandmake", "granddel", "games", "myturn", "game", "play"))
                     .build();
 
             while(true) {
@@ -176,18 +179,87 @@ public class ServerPlay {
                     }
                 }
                 else if(input.equals("faccept")) {
+                    String user = getUser();
+                    if(httpUtils.respondToFriendRequest(user, Answer.ACCEPT)) {
+                        System.out.println("You are now friends");
+                    }
+                    else {
+                        System.out.println("Could not respond to request");
+                    }
                 }
                 else if(input.equals("fdeny")) {
+                    String user = getUser();
+                    if(httpUtils.respondToFriendRequest(user, Answer.DENY)) {
+                        System.out.println("You are now friends");
+                    }
+                    else {
+                        System.out.println("Could not respond to request");
+                    }
                 }
                 else if(input.equals("unfriend")) {
+                    String user = getUser();
+                    if(httpUtils.unfriendUser(user)) {
+                        System.out.println("You no longer friends");
+                    }
+                    else {
+                        System.out.println("Could not unfriend that user");
+                    }
                 }
                 else if(input.equals("block")) {
+                    String user = getUser();
+                    if(httpUtils.blockUser(user)) {
+                        System.out.println("You have successfully blocked that user");
+                    }
+                    else {
+                        System.out.println("Could not block that user");
+                    }
                 }
                 else if(input.equals("unblock")) {
+                    String user = getUser();
+                    if(httpUtils.unblockUser(user)) {
+                        System.out.println("You have successfully unblocked that user");
+                    }
+                    else {
+                        System.out.println("Could not unblock that user");
+                    }
                 }
                 else if(input.equals("msend")) {
+                    String user = getUser();
+                    String message = getText("What is your message? ");
+                    if(httpUtils.sendMessage(user, message)) {
+                        System.out.println("Your message was sent");
+                    }
+                    else {
+                        System.out.println("Your message could not be sent");
+                    }
                 }
-                else if(input.equals("msearch")) {
+                else if(input.equals("munread")) {
+                    getUnread();
+                }
+                else if(input.equals("mread")) {
+                    if(httpUtils.markAllRead()) {
+                        System.out.println("Your messages have been marked read");
+                    }
+                    else {
+                        System.out.println("Your messages could not be marked read");
+                    }
+                }
+                else if(input.equals("muser")) {
+                    String user = getUser();
+                    Message[] messages = httpUtils.getMessagesFromUser(user);
+                    if(messages != null && messages.length > 0) {
+                        System.out.println("Your messages with " + getUsernameFromId(user));
+                        for(Message message : messages) {
+                            if(!message.isOpened()) {
+                                System.out.print("*");
+                            }
+                            System.out.println(message.getTimestamp() + " " + getUsernameFromId(message.getSender()) + ": " + message.getMessage());
+                        }
+                        httpUtils.markReadFromSender(user);
+                    }
+                    else {
+                        System.out.println("Could not find any messages with that user");
+                    }
                 }
                 else if(input.equals("igrequests")) {
                 }
@@ -244,7 +316,9 @@ public class ServerPlay {
                     System.out.println("  block- block a user");
                     System.out.println("  unblock- unblock a user");
                     System.out.println("  msend- send a message to another user");
-                    System.out.println("  msearch- search your messages");
+                    System.out.println("  munread- get a list of all users you have unread messages for");
+                    System.out.println("  mread- mark all your messages as read");
+                    System.out.println("  muser- see your messages with a user");
                     System.out.println("  igrequests- get a list of incoming game requests");
                     System.out.println("  ogrequests- get a list of outgoing game requests");
                     System.out.println("  grequest- create a game request");
@@ -293,6 +367,43 @@ public class ServerPlay {
             else {
                 return id;
             }
+        }
+    }
+
+    private String getText(String prompt) throws IOException {
+        LineReader nullReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new NullCompleter())
+                .build();
+
+        return nullReader.readLine(prompt);
+    }
+
+    private void getUnread() {
+        Message[] messages = httpUtils.getUnreadMessages();
+        if(messages != null && messages.length > 0) {
+            HashMap<String, Integer> map = new HashMap<>();
+            for(Message message : messages) {
+                if(map.containsKey(message.getSender())) {
+                    map.put(message.getSender(), map.get(message.getSender()) + 1);
+                }
+                else {
+                    map.put(message.getSender(), 1);
+                }
+            }
+
+            System.out.println("Users who have sent you messages:");
+            for(String key : map.keySet()) {
+                if(map.get(key) > 1) {
+                    System.out.println(getUsernameFromId(key) + ": " + map.get(key) + " unread messages");
+                }
+                else {
+                    System.out.println(getUsernameFromId(key) + ": 1 unread message");
+                }
+            }
+        }
+        else {
+            System.out.println("Could not find any unread messages");
         }
     }
 

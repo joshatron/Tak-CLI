@@ -1,6 +1,8 @@
 package io.joshatron.tak.cli.app.server;
 
+import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.GameNotifications;
+import io.joshatron.tak.cli.app.server.response.Message;
 import io.joshatron.tak.cli.app.server.response.SocialNotifications;
 import io.joshatron.tak.cli.app.server.response.User;
 import org.apache.http.HttpResponse;
@@ -37,6 +39,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 
 public class HttpUtils {
 
@@ -352,6 +355,192 @@ public class HttpUtils {
     public boolean deleteFriendRequest(String id) {
         HttpDelete request = new HttpDelete(serverUrl + "/social/request/cancel/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean respondToFriendRequest(String id, Answer answer) {
+        HttpPost request = new HttpPost(serverUrl + "/social/request/respond/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", answer.name());
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean unfriendUser(String id) {
+        HttpDelete request = new HttpDelete(serverUrl + "/social/user/" + id + "/unfriend");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean blockUser(String id) {
+        HttpPost request = new HttpPost(serverUrl + "/social/user/" + id + "/block");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean unblockUser(String id) {
+        HttpDelete request = new HttpDelete(serverUrl + "/social/user/" + id + "/unblock");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean sendMessage(String id, String text) {
+        if(getUserFromUserId(id).getUsername().equalsIgnoreCase(username)) {
+            return false;
+        }
+        HttpPost request = new HttpPost(serverUrl + "/social/message/send/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", text);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public Message[] getUnreadMessages() {
+        HttpGet request = new HttpGet(serverUrl + "/social/message/search?read=NOT_READ");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<Message> messages = new ArrayList<>();
+
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+                    messages.add(new Message(o.getString("sender"), o.getString("recipient"),
+                            new Date(o.getLong("timestamp")), o.getString("message"), o.getBoolean("opened")));
+                }
+
+                return messages.toArray(new Message[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Message[] getMessagesFromUser(String other) {
+        HttpGet request = new HttpGet(serverUrl + "/social/message/search?others=" + other);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<Message> messages = new ArrayList<>();
+
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+                    messages.add(new Message(o.getString("sender"), o.getString("recipient"),
+                            new Date(o.getLong("timestamp")), o.getString("message"), o.getBoolean("opened")));
+                }
+
+                return messages.toArray(new Message[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean markAllRead() {
+        HttpPost request = new HttpPost(serverUrl + "/social/message/markread");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean markReadFromSender(String sender) {
+        HttpPost request = new HttpPost(serverUrl + "/social/message/markread");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        JSONArray senders = new JSONArray();
+        senders.put(sender);
+        body.put("senders", senders);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
 
         try {
             HttpResponse response = client.execute(request);
