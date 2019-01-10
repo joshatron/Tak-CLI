@@ -1,10 +1,7 @@
 package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.request.Answer;
-import io.joshatron.tak.cli.app.server.response.GameNotifications;
-import io.joshatron.tak.cli.app.server.response.Message;
-import io.joshatron.tak.cli.app.server.response.SocialNotifications;
-import io.joshatron.tak.cli.app.server.response.User;
+import io.joshatron.tak.cli.app.server.response.*;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.completer.NullCompleter;
@@ -262,8 +259,32 @@ public class ServerPlay {
                     }
                 }
                 else if(input.equals("igrequests")) {
+                    RequestInfo[] requests = httpUtils.getIncomingGameRequests();
+                    if(requests != null && requests.length > 0) {
+                        System.out.println("Users requesting a game with you:");
+                        for (RequestInfo request : requests) {
+                            System.out.print(getUsernameFromId(request.getRequester()));
+                            System.out.print(" (" + request.getRequesterColor().name() + "): ");
+                            System.out.println(request.getFirst().name() + " goes first");
+                        }
+                    }
+                    else {
+                        System.out.println("You have no incoming game requests.");
+                    }
                 }
                 else if(input.equals("ogrequests")) {
+                    RequestInfo[] requests = httpUtils.getOutgoingGameRequests();
+                    if(requests != null && requests.length > 0) {
+                        System.out.println("Users you are requesting a game with:");
+                        for (RequestInfo request : requests) {
+                            System.out.print(getUsernameFromId(request.getAcceptor()));
+                            System.out.print(" (" + request.getRequesterColor().name() + "): ");
+                            System.out.println(request.getFirst().name() + " goes first");
+                        }
+                    }
+                    else {
+                        System.out.println("You have no outgoing game requests.");
+                    }
                 }
                 else if(input.equals("grequest")) {
                 }
@@ -342,6 +363,9 @@ public class ServerPlay {
                 }
                 else if(input.equals("")) {
                     continue;
+                }
+                else {
+                    System.out.println("Invalid command. If you are unsure what you can do, type 'help'");
                 }
             }
 

@@ -1,10 +1,8 @@
 package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.request.Answer;
-import io.joshatron.tak.cli.app.server.response.GameNotifications;
-import io.joshatron.tak.cli.app.server.response.Message;
-import io.joshatron.tak.cli.app.server.response.SocialNotifications;
-import io.joshatron.tak.cli.app.server.response.User;
+import io.joshatron.tak.cli.app.server.response.*;
+import io.joshatron.tak.engine.game.Player;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -552,6 +550,60 @@ public class HttpUtils {
         }
 
         return false;
+    }
+
+    public RequestInfo[] getIncomingGameRequests() {
+        HttpGet request = new HttpGet(serverUrl + "/games/request/incoming");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<RequestInfo> requests = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+                    requests.add(new RequestInfo(o.getString("requester"), o.getString("acceptor"),
+                            Player.valueOf(o.getString("requesterColor")), Player.valueOf(o.getString("first")),
+                            o.getInt("size")));
+                }
+
+                return requests.toArray(new RequestInfo[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public RequestInfo[] getOutgoingGameRequests() {
+        HttpGet request = new HttpGet(serverUrl + "/games/request/outgoing");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<RequestInfo> requests = new ArrayList<>();
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+                    requests.add(new RequestInfo(o.getString("requester"), o.getString("acceptor"),
+                            Player.valueOf(o.getString("requesterColor")), Player.valueOf(o.getString("first")),
+                            o.getInt("size")));
+                }
+
+                return requests.toArray(new RequestInfo[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public SocialNotifications getSocialNotifications() {
