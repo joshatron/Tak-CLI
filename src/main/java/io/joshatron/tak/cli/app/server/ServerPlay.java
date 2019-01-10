@@ -2,6 +2,7 @@ package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.*;
+import io.joshatron.tak.engine.game.Player;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.completer.NullCompleter;
@@ -278,7 +279,7 @@ public class ServerPlay {
                         System.out.println("Users you are requesting a game with:");
                         for (RequestInfo request : requests) {
                             System.out.print(getUsernameFromId(request.getAcceptor()));
-                            System.out.print(" (" + request.getRequesterColor().name() + "): ");
+                            System.out.print(" (" + request.getRequesterColor().other().name() + "): ");
                             System.out.println(request.getFirst().name() + " goes first");
                         }
                     }
@@ -287,6 +288,13 @@ public class ServerPlay {
                     }
                 }
                 else if(input.equals("grequest")) {
+                    RequestInfo requestInfo = getRequest();
+                    if(httpUtils.requestGame(requestInfo)) {
+                        System.out.println("Your request was sent");
+                    }
+                    else {
+                        System.out.println("Your request could not be sent");
+                    }
                 }
                 else if(input.equals("gcancel")) {
                 }
@@ -401,6 +409,54 @@ public class ServerPlay {
                 .build();
 
         return nullReader.readLine(prompt);
+    }
+
+    private RequestInfo getRequest() throws IOException {
+        LineReader sizeReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new StringsCompleter("3", "4", "5", "6", "8"))
+                .build();
+        LineReader playerReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new StringsCompleter("white", "black"))
+                .build();
+
+        String user = getUser();
+        int size;
+        Player requesterColor;
+        Player first;
+
+        while(true) {
+            try {
+                size = Integer.parseInt(sizeReader.readLine("What size game do you want to play? ").trim());
+                if(size != 3 && size != 4 && size != 5 && size != 6 && size != 8) {
+                    System.out.println("Please choose a valid size.");
+                }
+                else {
+                    break;
+                }
+            } catch (Exception e) {
+                System.out.println("Please choose a valid size.");
+            }
+        }
+        while(true) {
+            try {
+                requesterColor = Player.valueOf(playerReader.readLine("What color do you want to be? ").trim().toUpperCase());
+                break;
+            } catch (Exception e) {
+                System.out.println("Please choose either black or white.");
+            }
+        }
+        while(true) {
+            try {
+                first = Player.valueOf(playerReader.readLine("What color should go first? ").trim().toUpperCase());
+                break;
+            } catch (Exception e) {
+                System.out.println("Please choose either black or white.");
+            }
+        }
+
+        return new RequestInfo(httpUtils.getUsername(), user, requesterColor, first, size);
     }
 
     private void getUnread() {

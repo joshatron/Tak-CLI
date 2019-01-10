@@ -606,6 +606,28 @@ public class HttpUtils {
         return null;
     }
 
+    public boolean requestGame(RequestInfo requestInfo) {
+        HttpPost request = new HttpPost(serverUrl + "/games/request/create/" + requestInfo.getAcceptor());
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("size", requestInfo.getSize());
+        body.put("requesterColor", requestInfo.getRequesterColor().name());
+        body.put("first", requestInfo.getFirst().name());
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public SocialNotifications getSocialNotifications() {
         HttpGet request = new HttpGet(serverUrl + "/social/notifications");
         request.setHeader("Authorization", getBasicAuthString(username, password));
