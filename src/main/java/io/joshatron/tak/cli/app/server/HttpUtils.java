@@ -628,6 +628,90 @@ public class HttpUtils {
         return false;
     }
 
+    public boolean cancelGameRequest(String id) {
+        HttpDelete request = new HttpDelete(serverUrl + "/games/request/cancel/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean respondToGameRequest(String id, Answer answer) {
+        HttpPost request = new HttpPost(serverUrl + "/games/request/respond/" + id);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", answer.name());
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int getRandomGameSize() {
+        HttpGet request = new HttpGet(serverUrl + "/games/request/random/outgoing");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                return Integer.parseInt(EntityUtils.toString(response.getEntity()));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public boolean createRandomGameRequest(int size) {
+        HttpPost request = new HttpPost(serverUrl + "/games/request/random/create/" + size);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean cancelRandomGameRequest() {
+        HttpDelete request = new HttpDelete(serverUrl + "/games/request/random/cancel");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public SocialNotifications getSocialNotifications() {
         HttpGet request = new HttpGet(serverUrl + "/social/notifications");
         request.setHeader("Authorization", getBasicAuthString(username, password));

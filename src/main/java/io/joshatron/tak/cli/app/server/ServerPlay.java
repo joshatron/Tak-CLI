@@ -297,16 +297,57 @@ public class ServerPlay {
                     }
                 }
                 else if(input.equals("gcancel")) {
+                    String user = getUser();
+                    if(httpUtils.cancelGameRequest(user)) {
+                        System.out.println("You have successfully cancelled the game");
+                    }
+                    else {
+                        System.out.println("Could not cancel the game request");
+                    }
                 }
                 else if(input.equals("gaccept")) {
+                    String user = getUser();
+                    if(httpUtils.respondToGameRequest(user, Answer.ACCEPT)) {
+                        System.out.println("You have successfully responded to the game");
+                    }
+                    else {
+                        System.out.println("Could not respond to the game request");
+                    }
                 }
                 else if(input.equals("gdeny")) {
+                    String user = getUser();
+                    if(httpUtils.respondToGameRequest(user, Answer.DENY)) {
+                        System.out.println("You have successfully responded to the game");
+                    }
+                    else {
+                        System.out.println("Could not respond to the game request");
+                    }
                 }
                 else if(input.equals("grand")) {
+                    int size = httpUtils.getRandomGameSize();
+                    if(size != 0) {
+                        System.out.println("Random game request size: " + size);
+                    }
+                    else {
+                        System.out.println("Could not retrieve you random game request size");
+                    }
                 }
                 else if(input.equals("grandmake")) {
+                    int size = getBoardSize();
+                    if(httpUtils.createRandomGameRequest(size)) {
+                        System.out.println("Random game request created");
+                    }
+                    else {
+                        System.out.println("Could not make a random game request");
+                    }
                 }
                 else if(input.equals("granddel")) {
+                    if(httpUtils.cancelRandomGameRequest()) {
+                        System.out.println("Cancelled random game request");
+                    }
+                    else {
+                        System.out.println("Could not cancel random game request");
+                    }
                 }
                 else if(input.equals("games")) {
                 }
@@ -411,21 +452,13 @@ public class ServerPlay {
         return nullReader.readLine(prompt);
     }
 
-    private RequestInfo getRequest() throws IOException {
+    private int getBoardSize() throws IOException {
         LineReader sizeReader = LineReaderBuilder.builder()
                 .terminal(TerminalBuilder.terminal())
                 .completer(new StringsCompleter("3", "4", "5", "6", "8"))
                 .build();
-        LineReader playerReader = LineReaderBuilder.builder()
-                .terminal(TerminalBuilder.terminal())
-                .completer(new StringsCompleter("white", "black"))
-                .build();
 
-        String user = getUser();
         int size;
-        Player requesterColor;
-        Player first;
-
         while(true) {
             try {
                 size = Integer.parseInt(sizeReader.readLine("What size game do you want to play? ").trim());
@@ -439,6 +472,21 @@ public class ServerPlay {
                 System.out.println("Please choose a valid size.");
             }
         }
+
+        return size;
+    }
+
+    private RequestInfo getRequest() throws IOException {
+        LineReader playerReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new StringsCompleter("white", "black"))
+                .build();
+
+        String user = getUser();
+        int size = getBoardSize();
+        Player requesterColor;
+        Player first;
+
         while(true) {
             try {
                 requesterColor = Player.valueOf(playerReader.readLine("What color do you want to be? ").trim().toUpperCase());
