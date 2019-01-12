@@ -2,7 +2,10 @@ package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.*;
+import io.joshatron.tak.engine.game.GameState;
 import io.joshatron.tak.engine.game.Player;
+import io.joshatron.tak.engine.turn.Turn;
+import io.joshatron.tak.engine.turn.TurnUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.completer.NullCompleter;
@@ -350,12 +353,74 @@ public class ServerPlay {
                     }
                 }
                 else if(input.equals("games")) {
+                    GameInfo[] games = httpUtils.getOpenGames();
+                    if(games != null && games.length > 0) {
+                        printGameInfos(games);
+                    }
+                    else {
+                        System.out.println("Could not find any games");
+                    }
                 }
                 else if(input.equals("myturn")) {
+                    GameInfo[] games = httpUtils.getYourTurnGames();
+                    if(games != null && games.length > 0) {
+                        printGameInfos(games);
+                    }
+                    else {
+                        System.out.println("Could not find any games");
+                    }
                 }
                 else if(input.equals("game")) {
+                    String user = getUser();
+                    GameInfo info = httpUtils.getGameWithUser(user);
+                    if(info != null) {
+                        if(info.getWhite().equals(getIdFromUsername(httpUtils.getUsername()))) {
+                            System.out.print(getUsernameFromId(info.getBlack()) + " (BLACK): ");
+                        }
+                        else {
+                            System.out.print(getUsernameFromId(info.getBlack()) + " (WHITE): ");
+                        }
+                        System.out.print(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
+
+                        GameState state = getStateFromGameInfo(info);
+                        state.printBoard();
+                    }
+                    else {
+                        System.out.println("Could not find the game");
+                    }
                 }
                 else if(input.equals("play")) {
+                    String user = getUser();
+                    GameInfo info = httpUtils.getGameWithUser(user);
+                    if(info != null) {
+                        if(info.getWhite().equals(getIdFromUsername(httpUtils.getUsername()))) {
+                            System.out.print(getUsernameFromId(info.getBlack()) + " (BLACK): ");
+                        }
+                        else {
+                            System.out.print(getUsernameFromId(info.getBlack()) + " (WHITE): ");
+                        }
+                        System.out.println(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
+
+                        GameState state = getStateFromGameInfo(info);
+                        state.printBoard();
+                        while(true) {
+                            String turn = nullReader.readLine("What turn do you want to make? ");
+                            if(state.isLegalTurn(TurnUtils.turnFromString(turn))) {
+                                httpUtils.playTurn(info.getGameId(), turn);
+                                break;
+                            }
+                            else if(turn.equalsIgnoreCase("exit")) {
+                                System.out.println("Canceling turn play");
+                                break;
+                            }
+                            else {
+                                System.out.println("Invalid move");
+                            }
+                        }
+                    }
+                    else {
+                        System.out.println("Could not find the game");
+                    }
                 }
                 else if(input.equals("logout")) {
                     config.setUsername(null);
@@ -532,6 +597,28 @@ public class ServerPlay {
         }
         else {
             System.out.println("Could not find any unread messages");
+        }
+    }
+
+    private GameState getStateFromGameInfo(GameInfo info) {
+        GameState state = new GameState(info.getFirst(), info.getSize());
+        for(String turn : info.getTurns()) {
+            state.executeTurn(TurnUtils.turnFromString(turn));
+        }
+
+        return state;
+    }
+
+    private void printGameInfos(GameInfo[] infos) {
+        System.out.println("Your games:");
+        for(GameInfo info : infos) {
+            if(info.getWhite().equals(getIdFromUsername(httpUtils.getUsername()))) {
+                System.out.print(getUsernameFromId(info.getBlack()) + " (BLACK): ");
+            }
+            else {
+                System.out.print(getUsernameFromId(info.getWhite()) + " (WHITE): ");
+            }
+            System.out.println(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
         }
     }
 

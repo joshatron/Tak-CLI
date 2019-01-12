@@ -712,6 +712,125 @@ public class HttpUtils {
         return false;
     }
 
+    public GameInfo[] getOpenGames() {
+        HttpGet request = new HttpGet(serverUrl + "/games/search?complete=INCOMPLETE");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<GameInfo> gameInfos = new ArrayList<>();
+
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+
+                    JSONArray turnArray = o.getJSONArray("turns");
+                    String[] turns = new String[turnArray.length()];
+                    for(int j = 0; j < turnArray.length(); j++) {
+                        turns[j] = turnArray.getString(j);
+                    }
+
+                    gameInfos.add(new GameInfo(o.getString("gameId"), o.getString("white"), o.getString("black"),
+                            o.getInt("size"), Player.valueOf(o.getString("first")), Player.valueOf(o.getString("current")),
+                            null, false, turns));
+                }
+
+                return gameInfos.toArray(new GameInfo[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public GameInfo[] getYourTurnGames() {
+        HttpGet request = new HttpGet(serverUrl + "/games/search?pending=PENDING");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                ArrayList<GameInfo> gameInfos = new ArrayList<>();
+
+                for(int i = 0; i < json.length(); i++) {
+                    JSONObject o = json.getJSONObject(i);
+
+                    JSONArray turnArray = o.getJSONArray("turns");
+                    String[] turns = new String[turnArray.length()];
+                    for(int j = 0; j < turnArray.length(); j++) {
+                        turns[j] = turnArray.getString(j);
+                    }
+
+                    gameInfos.add(new GameInfo(o.getString("gameId"), o.getString("white"), o.getString("black"),
+                            o.getInt("size"), Player.valueOf(o.getString("first")), Player.valueOf(o.getString("current")),
+                            null, false, turns));
+                }
+
+                return gameInfos.toArray(new GameInfo[0]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public GameInfo getGameWithUser(String user) {
+        HttpGet request = new HttpGet(serverUrl + "/games/search?opponents=" + user);
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                String contents = EntityUtils.toString(response.getEntity());
+                JSONArray json = new JSONArray(contents);
+
+                JSONObject o = json.getJSONObject(0);
+
+                JSONArray turnArray = o.getJSONArray("turns");
+                String[] turns = new String[turnArray.length()];
+                for(int j = 0; j < turnArray.length(); j++) {
+                    turns[j] = turnArray.getString(j);
+                }
+
+                return new GameInfo(o.getString("gameId"), o.getString("white"), o.getString("black"),
+                        o.getInt("size"), Player.valueOf(o.getString("first")), Player.valueOf(o.getString("current")),
+                        null, false, turns);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean playTurn(String gameId, String turn) {
+        HttpPost request = new HttpPost(serverUrl + "/games/game/" + gameId + "/play");
+        request.setHeader("Authorization", getBasicAuthString(username, password));
+        JSONObject body = new JSONObject();
+        body.put("text", turn);
+        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        request.setEntity(entity);
+
+        try {
+            HttpResponse response = client.execute(request);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public SocialNotifications getSocialNotifications() {
         HttpGet request = new HttpGet(serverUrl + "/social/notifications");
         request.setHeader("Authorization", getBasicAuthString(username, password));
