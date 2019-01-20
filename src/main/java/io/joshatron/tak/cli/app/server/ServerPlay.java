@@ -2,9 +2,9 @@ package io.joshatron.tak.cli.app.server;
 
 import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.*;
+import io.joshatron.tak.engine.exception.TakEngineException;
 import io.joshatron.tak.engine.game.GameState;
 import io.joshatron.tak.engine.game.Player;
-import io.joshatron.tak.engine.turn.Turn;
 import io.joshatron.tak.engine.turn.TurnUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -282,7 +282,7 @@ public class ServerPlay {
                         System.out.println("Users you are requesting a game with:");
                         for (RequestInfo request : requests) {
                             System.out.print(getUsernameFromId(request.getAcceptor()));
-                            System.out.print(" (" + request.getRequesterColor().other().name() + "): ");
+                            System.out.print(" (" + request.getRequesterColor().opposite().name() + "): ");
                             System.out.println(request.getFirst().name() + " goes first");
                         }
                     }
@@ -485,6 +485,9 @@ public class ServerPlay {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (TakEngineException e) {
+            System.out.println(e.getCode());
+            e.printStackTrace();
         }
     }
 
@@ -600,7 +603,7 @@ public class ServerPlay {
         }
     }
 
-    private GameState getStateFromGameInfo(GameInfo info) {
+    private GameState getStateFromGameInfo(GameInfo info) throws TakEngineException {
         GameState state = new GameState(info.getFirst(), info.getSize());
         for(String turn : info.getTurns()) {
             state.executeTurn(TurnUtils.turnFromString(turn));

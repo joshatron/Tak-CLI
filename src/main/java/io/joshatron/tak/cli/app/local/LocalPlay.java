@@ -3,6 +3,7 @@ package io.joshatron.tak.cli.app.local;
 import io.joshatron.tak.ai.player.DefensiveEvaluator;
 import io.joshatron.tak.ai.player.MiniMaxPlayer;
 import io.joshatron.tak.ai.player.RandomPlayer;
+import io.joshatron.tak.engine.exception.TakEngineException;
 import io.joshatron.tak.engine.game.GameSetResult;
 import io.joshatron.tak.engine.game.Games;
 import io.joshatron.tak.engine.game.Player;
@@ -126,6 +127,9 @@ public class LocalPlay {
                 System.out.println("It's a tie! Both players won the same number of games.");
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TakEngineException e) {
+            System.out.println(e.getCode());
             e.printStackTrace();
         }
     }
