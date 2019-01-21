@@ -1,5 +1,8 @@
 package io.joshatron.tak.cli.app.server;
 
+import io.joshatron.tak.cli.app.server.commands.Command;
+import io.joshatron.tak.cli.app.server.commands.CommandInterpreter;
+import io.joshatron.tak.cli.app.server.commands.UsernameCompleter;
 import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.*;
 import io.joshatron.tak.engine.exception.TakEngineException;
@@ -8,6 +11,7 @@ import io.joshatron.tak.engine.game.Player;
 import io.joshatron.tak.engine.turn.TurnUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
@@ -81,10 +85,7 @@ public class ServerPlay {
                     .build();
             LineReader commandReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("exit", "logout", "help", "cpass", "cname", "ifrequests", "ofrequests",
-                               "friends", "blocks", "frequest", "fcancel", "faccept", "fdeny", "unfriend", "block", "unblock",
-                               "msend", "munread", "mread", "muser", "igrequests", "ogrequests", "grequest", "gcancel",
-                               "gaccept", "gdeny", "grand", "grandmake", "granddel", "games", "myturn", "game", "play"))
+                    .completer(CommandInterpreter.getCommandCompleter(users))
                     .build();
 
             while(true) {
@@ -109,7 +110,7 @@ public class ServerPlay {
                         System.out.println("Could not change username.");
                     }
                 }
-                else if(input.equals("ifrequests")) {
+                else if(input.equals("ifreq")) {
                     User[] users = httpUtils.getIncomingFriendRequests();
                     if(users != null && users.length > 0) {
                         System.out.println("Users requesting to be friends with you:");
@@ -122,7 +123,7 @@ public class ServerPlay {
                         System.out.println("You have no incoming friend requests.");
                     }
                 }
-                else if(input.equals("ofrequests")) {
+                else if(input.equals("ofreq")) {
                     User[] users = httpUtils.getOutgoingFriendRequests();
                     if(users != null && users.length > 0) {
                         System.out.println("Users you are requesting to be friends with:");
@@ -161,8 +162,8 @@ public class ServerPlay {
                         System.out.println("Could not find any blocks.");
                     }
                 }
-                else if(input.equals("frequest")) {
-                    String user = getUser();
+                else if(input.startsWith("freq")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.createFriendRequest(user)) {
                         System.out.println("Friend request sent");
                     }
@@ -170,8 +171,8 @@ public class ServerPlay {
                         System.out.println("Could not create the friend request");
                     }
                 }
-                else if(input.equals("fcancel")) {
-                    String user = getUser();
+                else if(input.startsWith("fcancel")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.deleteFriendRequest(user)) {
                         System.out.println("Friend request deleted");
                     }
@@ -179,8 +180,8 @@ public class ServerPlay {
                         System.out.println("Could not delete the friend request");
                     }
                 }
-                else if(input.equals("faccept")) {
-                    String user = getUser();
+                else if(input.startsWith("faccept")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.respondToFriendRequest(user, Answer.ACCEPT)) {
                         System.out.println("You are now friends");
                     }
@@ -188,8 +189,8 @@ public class ServerPlay {
                         System.out.println("Could not respond to request");
                     }
                 }
-                else if(input.equals("fdeny")) {
-                    String user = getUser();
+                else if(input.startsWith("fdeny")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.respondToFriendRequest(user, Answer.DENY)) {
                         System.out.println("You are now friends");
                     }
@@ -197,8 +198,8 @@ public class ServerPlay {
                         System.out.println("Could not respond to request");
                     }
                 }
-                else if(input.equals("unfriend")) {
-                    String user = getUser();
+                else if(input.startsWith("unfriend")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.unfriendUser(user)) {
                         System.out.println("You no longer friends");
                     }
@@ -206,8 +207,8 @@ public class ServerPlay {
                         System.out.println("Could not unfriend that user");
                     }
                 }
-                else if(input.equals("block")) {
-                    String user = getUser();
+                else if(input.startsWith("block")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.blockUser(user)) {
                         System.out.println("You have successfully blocked that user");
                     }
@@ -215,8 +216,8 @@ public class ServerPlay {
                         System.out.println("Could not block that user");
                     }
                 }
-                else if(input.equals("unblock")) {
-                    String user = getUser();
+                else if(input.startsWith("unblock")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.unblockUser(user)) {
                         System.out.println("You have successfully unblocked that user");
                     }
@@ -224,8 +225,8 @@ public class ServerPlay {
                         System.out.println("Could not unblock that user");
                     }
                 }
-                else if(input.equals("msend")) {
-                    String user = getUser();
+                else if(input.startsWith("msend")) {
+                    String user = input.split(" ")[1];
                     String message = getText("What is your message? ");
                     if(httpUtils.sendMessage(user, message)) {
                         System.out.println("Your message was sent");
@@ -245,8 +246,8 @@ public class ServerPlay {
                         System.out.println("Your messages could not be marked read");
                     }
                 }
-                else if(input.equals("muser")) {
-                    String user = getUser();
+                else if(input.startsWith("muser")) {
+                    String user = input.split(" ")[1];
                     Message[] messages = httpUtils.getMessagesFromUser(user);
                     if(messages != null && messages.length > 0) {
                         System.out.println("Your messages with " + getUsernameFromId(user));
@@ -262,7 +263,7 @@ public class ServerPlay {
                         System.out.println("Could not find any messages with that user");
                     }
                 }
-                else if(input.equals("igrequests")) {
+                else if(input.equals("igreq")) {
                     RequestInfo[] requests = httpUtils.getIncomingGameRequests();
                     if(requests != null && requests.length > 0) {
                         System.out.println("Users requesting a game with you:");
@@ -276,7 +277,7 @@ public class ServerPlay {
                         System.out.println("You have no incoming game requests.");
                     }
                 }
-                else if(input.equals("ogrequests")) {
+                else if(input.equals("ogreq")) {
                     RequestInfo[] requests = httpUtils.getOutgoingGameRequests();
                     if(requests != null && requests.length > 0) {
                         System.out.println("Users you are requesting a game with:");
@@ -290,8 +291,8 @@ public class ServerPlay {
                         System.out.println("You have no outgoing game requests.");
                     }
                 }
-                else if(input.equals("grequest")) {
-                    RequestInfo requestInfo = getRequest();
+                else if(input.startsWith("greq")) {
+                    RequestInfo requestInfo = getRequest(input.split(" ")[1]);
                     if(httpUtils.requestGame(requestInfo)) {
                         System.out.println("Your request was sent");
                     }
@@ -299,8 +300,8 @@ public class ServerPlay {
                         System.out.println("Your request could not be sent");
                     }
                 }
-                else if(input.equals("gcancel")) {
-                    String user = getUser();
+                else if(input.startsWith("gcancel")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.cancelGameRequest(user)) {
                         System.out.println("You have successfully cancelled the game");
                     }
@@ -308,8 +309,8 @@ public class ServerPlay {
                         System.out.println("Could not cancel the game request");
                     }
                 }
-                else if(input.equals("gaccept")) {
-                    String user = getUser();
+                else if(input.startsWith("gaccept")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.respondToGameRequest(user, Answer.ACCEPT)) {
                         System.out.println("You have successfully responded to the game");
                     }
@@ -317,8 +318,8 @@ public class ServerPlay {
                         System.out.println("Could not respond to the game request");
                     }
                 }
-                else if(input.equals("gdeny")) {
-                    String user = getUser();
+                else if(input.startsWith("gdeny")) {
+                    String user = input.split(" ")[1];
                     if(httpUtils.respondToGameRequest(user, Answer.DENY)) {
                         System.out.println("You have successfully responded to the game");
                     }
@@ -370,8 +371,8 @@ public class ServerPlay {
                         System.out.println("Could not find any games");
                     }
                 }
-                else if(input.equals("game")) {
-                    String user = getUser();
+                else if(input.startsWith("game")) {
+                    String user = input.split(" ")[1];
                     GameInfo info = httpUtils.getGameWithUser(user);
                     if(info != null) {
                         if(info.getWhite().equals(getIdFromUsername(httpUtils.getUsername()))) {
@@ -389,8 +390,8 @@ public class ServerPlay {
                         System.out.println("Could not find the game");
                     }
                 }
-                else if(input.equals("play")) {
-                    String user = getUser();
+                else if(input.startsWith("play")) {
+                    String user = input.split(" ")[1];
                     GameInfo info = httpUtils.getGameWithUser(user);
                     if(info != null) {
                         if(info.getWhite().equals(getIdFromUsername(httpUtils.getUsername()))) {
@@ -439,34 +440,34 @@ public class ServerPlay {
                     System.out.println("The following is a list of what you can do:");
                     System.out.println("  cpass- change your password");
                     System.out.println("  cname- change your username");
-                    System.out.println("  ifrequests- get a list of incoming friend requests");
-                    System.out.println("  ofrequests- get a list of outgoing friend requests");
+                    System.out.println("  ifreq- get a list of incoming friend requests");
+                    System.out.println("  ofreq- get a list of outgoing friend requests");
                     System.out.println("  friends- get a list of all your friends");
                     System.out.println("  blocks- get a list of all the users you are blocking");
-                    System.out.println("  frequest- create a friend request");
-                    System.out.println("  fcancel- cancel a friend request");
-                    System.out.println("  faccept- accept a friend request");
-                    System.out.println("  fdeny- deny a friend request");
-                    System.out.println("  unfriend- unfriend a user");
-                    System.out.println("  block- block a user");
-                    System.out.println("  unblock- unblock a user");
-                    System.out.println("  msend- send a message to another user");
+                    System.out.println("  freq {user}- create a friend request");
+                    System.out.println("  fcancel {user}- cancel a friend request");
+                    System.out.println("  faccept {user}- accept a friend request");
+                    System.out.println("  fdeny {user}- deny a friend request");
+                    System.out.println("  unfriend {user}- unfriend a user");
+                    System.out.println("  block {user}- block a user");
+                    System.out.println("  unblock {user}- unblock a user");
+                    System.out.println("  msend {user}- send a message to another user");
                     System.out.println("  munread- get a list of all users you have unread messages for");
                     System.out.println("  mread- mark all your messages as read");
-                    System.out.println("  muser- see your messages with a user");
-                    System.out.println("  igrequests- get a list of incoming game requests");
-                    System.out.println("  ogrequests- get a list of outgoing game requests");
-                    System.out.println("  grequest- create a game request");
-                    System.out.println("  gcancel- cancel a game request");
-                    System.out.println("  gaccept- accept a game request");
-                    System.out.println("  gdeny- deny a game request");
+                    System.out.println("  muser {user}- see your messages with a user");
+                    System.out.println("  igreq- get a list of incoming game requests");
+                    System.out.println("  ogreq- get a list of outgoing game requests");
+                    System.out.println("  greq {user}- create a game request");
+                    System.out.println("  gcancel {user}- cancel a game request");
+                    System.out.println("  gaccept {user}- accept a game request");
+                    System.out.println("  gdeny {user}- deny a game request");
                     System.out.println("  grand- check the size game of your random game request");
                     System.out.println("  grandmake- create a request for a game with a random user");
                     System.out.println("  granddel- cancel a random game request");
                     System.out.println("  games- get a summary of all your open games");
                     System.out.println("  myturn- get a summary of all your open games where it is your turn");
-                    System.out.println("  game- get a detailed view of a specific game");
-                    System.out.println("  play- open a detailed view of a game and make a turn");
+                    System.out.println("  game {user}- get a detailed view of a specific game");
+                    System.out.println("  play {user}- open a detailed view of a game and make a turn");
                     System.out.println("  help- display this help message");
                     System.out.println("  logout- logs out of user and goes back to the main menu");
                     System.out.println("  exit- exits back to the main menu");
@@ -488,26 +489,6 @@ public class ServerPlay {
         } catch (TakEngineException e) {
             System.out.println(e.getCode());
             e.printStackTrace();
-        }
-    }
-
-    private String getUser() throws IOException {
-        LineReader usernameReader = LineReaderBuilder.builder()
-                .terminal(TerminalBuilder.terminal())
-                .completer(new UsernameCompleter(users))
-                .build();
-
-        while(true) {
-            String username = usernameReader.readLine("What is the username? ").trim();
-
-            String id = getIdFromUsername(username);
-
-            if(id == null) {
-                System.out.println("Could not find the user.");
-            }
-            else {
-                return id;
-            }
         }
     }
 
@@ -544,13 +525,12 @@ public class ServerPlay {
         return size;
     }
 
-    private RequestInfo getRequest() throws IOException {
+    private RequestInfo getRequest(String user) throws IOException {
         LineReader playerReader = LineReaderBuilder.builder()
                 .terminal(TerminalBuilder.terminal())
                 .completer(new StringsCompleter("white", "black"))
                 .build();
 
-        String user = getUser();
         int size = getBoardSize();
         Player requesterColor;
         Player first;
