@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Command {
-    private ServerActions action;
+    private Actions action;
     private String[] arguments;
 }

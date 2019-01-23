@@ -1,6 +1,6 @@
 package io.joshatron.tak.cli.app.server.commands;
 
-public enum ServerActions {
+public enum Actions {
     CHANGE_PASSWORD("cpass"),
     CHANGE_USERNAME("cname"),
     INCOMING_FRIEND_REQUESTS("ifreq"),
@@ -31,13 +31,16 @@ public enum ServerActions {
     GET_GAMES_MY_TURN("myturn"),
     GET_GAME("game"),
     PLAY_TURN("play"),
+    LOCAL_GAME("local"),
+    CONNECT_TO_SERVER("connect"),
+    FORGET_SERVER("forget"),
     HELP("help"),
     LOGOUT("logout"),
     EXIT("exit");
 
     private String shorthand;
 
-    ServerActions(String shorthand) {
+    Actions(String shorthand) {
         this.shorthand = shorthand;
     }
 
