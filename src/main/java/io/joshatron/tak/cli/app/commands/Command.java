@@ -1,4 +1,4 @@
-package io.joshatron.tak.cli.app.server.commands;
+package io.joshatron.tak.cli.app.commands;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Command {
-    private Actions action;
+    private Action action;
     private String[] arguments;
 }

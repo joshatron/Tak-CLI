@@ -1,4 +1,4 @@
-package io.joshatron.tak.cli.app.server.commands;
+package io.joshatron.tak.cli.app.commands;
 
 import io.joshatron.tak.cli.app.server.response.User;
 import org.jline.reader.Candidate;

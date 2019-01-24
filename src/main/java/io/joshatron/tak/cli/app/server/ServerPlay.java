@@ -1,8 +1,5 @@
 package io.joshatron.tak.cli.app.server;
 
-import io.joshatron.tak.cli.app.server.commands.Command;
-import io.joshatron.tak.cli.app.server.commands.CommandInterpreter;
-import io.joshatron.tak.cli.app.server.commands.UsernameCompleter;
 import io.joshatron.tak.cli.app.server.request.Answer;
 import io.joshatron.tak.cli.app.server.response.*;
 import io.joshatron.tak.engine.exception.TakEngineException;
@@ -11,7 +8,6 @@ import io.joshatron.tak.engine.game.Player;
 import io.joshatron.tak.engine.turn.TurnUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
@@ -85,7 +81,7 @@ public class ServerPlay {
                     .build();
             LineReader commandReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(CommandInterpreter.getCommandCompleter(users))
+                    .completer(new NullCompleter())
                     .build();
 
             while(true) {

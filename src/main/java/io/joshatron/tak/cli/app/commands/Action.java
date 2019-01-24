@@ -1,6 +1,9 @@
-package io.joshatron.tak.cli.app.server.commands;
+package io.joshatron.tak.cli.app.commands;
 
-public enum Actions {
+import java.util.HashMap;
+import java.util.Map;
+
+public enum Action {
     CHANGE_PASSWORD("cpass"),
     CHANGE_USERNAME("cname"),
     INCOMING_FRIEND_REQUESTS("ifreq"),
@@ -40,11 +43,23 @@ public enum Actions {
 
     private String shorthand;
 
-    Actions(String shorthand) {
+    Action(String shorthand) {
         this.shorthand = shorthand;
     }
 
     public String getShorthand() {
         return shorthand;
+    }
+
+    private static final Map<String, Action> map;
+    static {
+        map = new HashMap<String, Action>();
+        for (Action a : Action.values()) {
+            map.put(a.getShorthand(), a);
+        }
+    }
+
+    public static Action getAction(String shorthand) {
+        return map.get(shorthand);
     }
 }
