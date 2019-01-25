@@ -1,63 +1,148 @@
 package io.joshatron.tak.cli.app;
 
-import io.joshatron.tak.cli.app.local.LocalPlay;
-import io.joshatron.tak.cli.app.server.ServerPlay;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.completer.StringsCompleter;
-import org.jline.terminal.TerminalBuilder;
+import io.joshatron.tak.cli.app.commands.Command;
+import io.joshatron.tak.cli.app.commands.CommandInterpreter;
+import io.joshatron.tak.cli.app.server.HttpUtils;
+import io.joshatron.tak.cli.app.server.ServerConfig;
+import io.joshatron.tak.cli.app.server.response.GameNotifications;
+import io.joshatron.tak.cli.app.server.response.SocialNotifications;
+import io.joshatron.tak.cli.app.server.response.User;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
-public class App
-{
-    public static void main(String[] args) {
-        try {
-            ServerPlay serverPlay = null;
-            LocalPlay localPlay = null;
+public class App {
 
-            LineReader playReader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("local", "server", "help", "exit"))
-                    .build();
+    private boolean online;
+    private ArrayList<User> users;
+    private CommandInterpreter commandInterpreter;
+    private ServerConfig config;
+    private HttpUtils httpUtils;
 
-            System.out.println("---------------------");
-            System.out.println("| Welcome to TakCLI |");
-            System.out.println("---------------------");
-            System.out.println();
+    public App() throws IOException {
+        online = false;
+        users = new ArrayList<>();
+        commandInterpreter = new CommandInterpreter(users);
+        config = new ServerConfig();
+        httpUtils = null;
 
-            while(true) {
-                String input = playReader.readLine("> ").toLowerCase().trim();
+        if(config.getServerUrl() != null) {
+            online = true;
+            httpUtils = new HttpUtils(config.getServerUrl());
+        }
+    }
 
-                if(input.equals("local")) {
-                    if(localPlay == null) {
-                        localPlay = new LocalPlay();
-                    }
-                    localPlay.play();
-                }
-                else if(input.equals("server")) {
-                    if(serverPlay == null) {
-                        serverPlay = new ServerPlay();
-                    }
-                    serverPlay.play();
-                }
-                else if(input.equals("help")) {
-                    System.out.println("The following is a list of what you can do:");
-                    System.out.println("  local- give parameters for playing one or more games.");
-                    System.out.println("  server- connect to a server to play.");
-                    System.out.println("  help- displays this help message.");
-                    System.out.println("  exit- exits the program.");
-                }
-                else if(input.equals("exit")) {
-                    break;
-                }
-                else {
-                    System.out.println("Please choose a valid option. Type help to see options.");
-                }
+    public void run() {
+
+        System.out.println("---------------------");
+        System.out.println("| Welcome to TakCLI |");
+        System.out.println("---------------------");
+        System.out.println();
+
+        while(true) {
+            Command command;
+            if(online) {
+                command = commandInterpreter.interpretCommand(createOnlinePrompt());
+            }
+            else {
+                command = commandInterpreter.interpretCommand("> ");
             }
 
+            switch(command.getAction()) {
+                case CHANGE_PASSWORD:
+                    break;
+                case CHANGE_USERNAME:
+                    break;
+                case INCOMING_FRIEND_REQUESTS:
+                    break;
+                case OUTGOING_FRIEND_REQUESTS:
+                    break;
+                case LIST_FRIENDS:
+                    break;
+                case LIST_BLOCKS:
+                    break;
+                case REQUEST_FRIEND:
+                    break;
+                case CANCEL_FRIEND_REQUEST:
+                    break;
+                case ACCEPT_FRIEND_REQUEST:
+                    break;
+                case DENY_FRIEND_REQUEST:
+                    break;
+                case UNFRIEND:
+                    break;
+                case BLOCK:
+                    break;
+                case UNBLOCK:
+                    break;
+                case SEND_MESSAGE:
+                    break;
+                case LIST_UNREAD:
+                    break;
+                case MARK_ALL_READ:
+                    break;
+                case MESSAGES_FROM_USER:
+                    break;
+                case INCOMING_GAME_REQUESTS:
+                    break;
+                case OUTGOING_GAME_REQUESTS:
+                    break;
+                case REQUEST_GAME:
+                    break;
+                case CANCEL_GAME_REQUEST:
+                    break;
+                case ACCEPT_GAME_REQUEST:
+                    break;
+                case DENY_GAME_REQUEST:
+                    break;
+                case GET_RANDOM_GAME_REQUEST_SIZE:
+                    break;
+                case CREATE_RANDOM_GAME_REQUEST:
+                    break;
+                case DELETE_RANDOM_GAME_REQUEST:
+                    break;
+                case GET_OPEN_GAMES:
+                    break;
+                case GET_GAMES_MY_TURN:
+                    break;
+                case GET_GAME:
+                    break;
+                case PLAY_TURN:
+                    break;
+                case LOCAL_GAME:
+                    break;
+                case CONNECT_TO_SERVER:
+                    break;
+                case FORGET_SERVER:
+                    break;
+                case HELP:
+                    break;
+                case LOGOUT:
+                    break;
+                case EXIT:
+                    System.out.println("Exiting...");
+                    return;
+                default:
+                    System.out.println("Invalid command. Type 'help' to see all options");
+            }
+        }
+    }
+
+    private String createOnlinePrompt() {
+        SocialNotifications social = httpUtils.getSocialNotifications();
+        GameNotifications game = httpUtils.getGameNotifications();
+
+        return httpUtils.getUsername() + " fr:" + social.getFriendRequests() + "|ur:" + social.getUnreadMessages() +
+                "|gr:" + game.getGameRequests() + "|yt:" + game.getYourTurn() + "> ";
+    }
+
+    public static void main(String[] args) {
+        try {
+            new App().run();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
