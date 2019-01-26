@@ -86,7 +86,8 @@ public class CommandInterpreter {
                 Action.EXIT.getShorthand());
         StringsCompleter oneArg = new StringsCompleter(
                 Action.CHANGE_PASSWORD.getShorthand(),
-                Action.CHANGE_USERNAME.getShorthand());
+                Action.CHANGE_USERNAME.getShorthand(),
+                Action.LOGIN.getShorthand());
         StringsCompleter oneNameArg = new StringsCompleter(
                 Action.REQUEST_FRIEND.getShorthand(),
                 Action.CANCEL_FRIEND_REQUEST.getShorthand(),

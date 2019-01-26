@@ -55,6 +55,11 @@ public class ServerConfig {
         }
     }
 
+    public void forgetConfig() {
+        serverUrl = "";
+        username = "";
+    }
+
     public String getServerUrl() {
         return serverUrl;
     }

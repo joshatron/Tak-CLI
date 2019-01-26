@@ -38,6 +38,7 @@ public enum Action {
     CONNECT_TO_SERVER("connect"),
     FORGET_SERVER("forget"),
     HELP("help"),
+    LOGIN("login"),
     LOGOUT("logout"),
     EXIT("exit");
 

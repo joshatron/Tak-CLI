@@ -10,6 +10,11 @@ import io.joshatron.tak.cli.app.server.response.GameNotifications;
 import io.joshatron.tak.cli.app.server.response.SocialNotifications;
 import io.joshatron.tak.cli.app.server.response.User;
 import io.joshatron.tak.engine.game.Player;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.NullCompleter;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,9 +34,12 @@ public class App {
         config = new ServerConfig();
         httpUtils = null;
 
-        if(config.getServerUrl() != null) {
-            online = true;
+        if(config.getServerUrl() != null && !config.getServerUrl().isEmpty()) {
             httpUtils = new HttpUtils(config.getServerUrl());
+            if(config.getUsername() != null && !config.getUsername().isEmpty()) {
+                authenticate(config.getUsername());
+                online = true;
+            }
         }
     }
 
@@ -45,7 +53,7 @@ public class App {
         while(true) {
             try {
                 Command command;
-                if (online) {
+                if(online) {
                     command = commandInterpreter.interpretCommand(createOnlinePrompt());
                 } else {
                     command = commandInterpreter.interpretCommand("> ");
@@ -56,7 +64,12 @@ public class App {
                     }
                 }
 
-                switch (command.getAction()) {
+                if(command == null) {
+                    System.out.println("Invalid command. Type 'help' to see all options");
+                    continue;
+                }
+
+                switch(command.getAction()) {
                     case CHANGE_PASSWORD:
                         break;
                     case CHANGE_USERNAME:
@@ -122,8 +135,12 @@ public class App {
                                 Player.valueOf(command.getArg(1).toUpperCase()), command.getArg(2), command.getArg(3));
                         break;
                     case CONNECT_TO_SERVER:
+                        connectToServer(command.getArg(0));
                         break;
                     case FORGET_SERVER:
+                        config.forgetConfig();
+                        httpUtils = null;
+                        online = false;
                         break;
                     case HELP:
                         if(online) {
@@ -133,10 +150,17 @@ public class App {
                             System.out.println(getOfflineHelp());
                         }
                         break;
+                    case LOGIN:
+                        authenticate(command.getArg(0));
+                        break;
                     case LOGOUT:
+                        config.setUsername("");
+                        httpUtils.logout();
+                        online = false;
                         break;
                     case EXIT:
                         System.out.println("Exiting...");
+                        config.exportConfig();
                         return;
                     default:
                         System.out.println("Invalid command. Type 'help' to see all options");
@@ -147,8 +171,83 @@ public class App {
         }
     }
 
+    private void connectToServer(String serverUrl) throws IOException {
+        httpUtils = new HttpUtils(serverUrl);
+        if(httpUtils.checkConnection()) {
+            config.setServerUrl(serverUrl);
+            LineReader nullReader = LineReaderBuilder.builder()
+                    .terminal(TerminalBuilder.terminal())
+                    .completer(new NullCompleter())
+                    .build();
+            LineReader optionReader = LineReaderBuilder.builder()
+                    .terminal(TerminalBuilder.terminal())
+                    .completer(new StringsCompleter("authenticate", "register"))
+                    .build();
+
+            while(true) {
+                String option = optionReader.readLine("Do you want to register or authenticate? ").toLowerCase().trim();
+                if (option.equals("register")) {
+                    register();
+                    break;
+                } else if (option.equals("authenticate")) {
+                    String username = nullReader.readLine("What is your username? ");
+                    authenticate(username);
+                    break;
+                }
+            }
+        }
+        else {
+            System.out.println("Could not connect to server");
+        }
+    }
+
+    private void authenticate(String username) throws IOException {
+        LineReader nullReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new NullCompleter())
+                .build();
+
+        while(true) {
+            String password = nullReader.readLine("What is your password (blank to cancel)? ", '*');
+
+            if(password.isEmpty()) {
+                return;
+            }
+
+            if(httpUtils.authenticate(username, password)) {
+                config.setUsername(username);
+                online = true;
+                break;
+            }
+            System.out.println("Incorrect username or password. Please try again");
+        }
+    }
+
+    private void register() throws IOException {
+        LineReader nullReader = LineReaderBuilder.builder()
+                .terminal(TerminalBuilder.terminal())
+                .completer(new NullCompleter())
+                .build();
+
+        while(true) {
+            String username = nullReader.readLine("What is your username? ");
+            String password = nullReader.readLine("What is your password (blank to cancel)? ", '*');
+
+            if(password.isEmpty()) {
+                return;
+            }
+
+            if(httpUtils.register(username, password)) {
+                config.setUsername(username);
+                online = true;
+                break;
+            }
+            System.out.println("Can't register that username. Please try again");
+        }
+    }
+
     private boolean isOnlineCommand(Action action) {
-        return (action != Action.LOCAL_GAME && action != Action.CONNECT_TO_SERVER &&
+        return (action != Action.LOCAL_GAME && action != Action.CONNECT_TO_SERVER && action != Action.LOGIN &&
                 action != Action.HELP && action != Action.EXIT);
     }
 
@@ -238,6 +337,8 @@ public class App {
         stringBuilder.append(" {server url}- connect to the server specified\n  ");
         stringBuilder.append(Action.HELP.getShorthand());
         stringBuilder.append("- display this help message\n  ");
+        stringBuilder.append(Action.LOGIN.getShorthand());
+        stringBuilder.append(" {username}- logs into the server\n  ");
         stringBuilder.append(Action.LOGOUT.getShorthand());
         stringBuilder.append("- logs out of user and goes back to the main menu\n  ");
         stringBuilder.append(Action.EXIT.getShorthand());
@@ -254,6 +355,8 @@ public class App {
         stringBuilder.append(" {board size} {color going first} {white human or ai} {black human or ai} {# games}- play a local game against either another player or an AI\n  ");
         stringBuilder.append(Action.CONNECT_TO_SERVER.getShorthand());
         stringBuilder.append(" {server url}- connect to the server specified\n  ");
+        stringBuilder.append(Action.LOGIN.getShorthand());
+        stringBuilder.append(" {username}- logs into the server\n  ");
         stringBuilder.append(Action.HELP.getShorthand());
         stringBuilder.append("- display this help message\n  ");
         stringBuilder.append(Action.EXIT.getShorthand());
