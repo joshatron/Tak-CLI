@@ -153,7 +153,7 @@ public class HttpUtils {
     }
 
     public boolean isConnected() {
-        HttpGet request = new HttpGet(serverUrl + "/account/isAuthenticated");
+        HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
         request.setHeader("Authorization", getBasicAuthString("test", "test"));
 
         try {
@@ -170,7 +170,7 @@ public class HttpUtils {
     }
 
     public boolean isAuthenticated(String username, String password) {
-        HttpGet request = new HttpGet(serverUrl + "/account/isAuthenticated");
+        HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
@@ -863,7 +863,7 @@ public class HttpUtils {
     }
 
     public GameInfo getGameWithUser(String user) {
-        HttpGet request = new HttpGet(serverUrl + "/games/search?opponents=" + user);
+        HttpGet request = new HttpGet(serverUrl + "/games/search?opponents=" + user + "&complete=INCOMPLETE");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {

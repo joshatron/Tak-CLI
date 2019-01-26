@@ -74,7 +74,6 @@ public class App {
                 }
 
                 if(command == null) {
-                    System.out.println("Invalid command. Type 'help' to see all options");
                     continue;
                 }
 
@@ -129,6 +128,7 @@ public class App {
                         httpUtils.markAllRead();
                         break;
                     case MESSAGES_FROM_USER:
+                        printMessages(httpUtils.getMessagesFromUser(getIdFromUsername(command.getArg(0))));
                         httpUtils.markReadFromSender(getIdFromUsername(command.getArg(0)));
                         break;
                     case INCOMING_GAME_REQUESTS:
@@ -139,7 +139,7 @@ public class App {
                         break;
                     case REQUEST_GAME:
                         httpUtils.requestGame(new RequestInfo(httpUtils.getUsername(), getIdFromUsername(command.getArg(0)),
-                                Player.valueOf(command.getArg(2)), Player.valueOf(command.getArg(3)),
+                                Player.valueOf(command.getArg(2).toUpperCase()), Player.valueOf(command.getArg(3).toUpperCase()),
                                 Integer.parseInt(command.getArg(1))));
                         break;
                     case CANCEL_GAME_REQUEST:
@@ -229,17 +229,21 @@ public class App {
                     .build();
             LineReader optionReader = LineReaderBuilder.builder()
                     .terminal(TerminalBuilder.terminal())
-                    .completer(new StringsCompleter("isAuthenticated", "register"))
+                    .completer(new StringsCompleter("authenticate", "register"))
                     .build();
 
             while(true) {
-                String option = optionReader.readLine("Do you want to register or isAuthenticated? ").toLowerCase().trim();
-                if (option.equals("register")) {
+                String option = optionReader.readLine("Do you want to register or authenticate? ").toLowerCase().trim();
+                if(option.equals("register")) {
                     register();
                     break;
-                } else if (option.equals("isAuthenticated")) {
+                }
+                else if(option.equals("authenticate")) {
                     String username = nullReader.readLine("What is your username? ");
                     authenticate(username);
+                    break;
+                }
+                else if(option.isEmpty()) {
                     break;
                 }
             }
@@ -256,7 +260,7 @@ public class App {
                 .build();
 
         while(true) {
-            String password = nullReader.readLine("What is your password (blank to cancel)? ", '*');
+            String password = nullReader.readLine("What is your password for " + username + " (blank to cancel)? ", '*');
 
             if(password.isEmpty()) {
                 return;
@@ -265,6 +269,7 @@ public class App {
             if(httpUtils.isAuthenticated(username, password)) {
                 config.setUsername(username);
                 online = true;
+                initializeUsers();
                 break;
             }
             System.out.println("Incorrect username or password. Please try again");
@@ -288,6 +293,7 @@ public class App {
             if(httpUtils.register(username, password)) {
                 config.setUsername(username);
                 online = true;
+                initializeUsers();
                 break;
             }
             System.out.println("Can't register that username. Please try again");
@@ -417,7 +423,21 @@ public class App {
         if(toPrint != null && toPrint.length > 0) {
             for (User user : toPrint) {
                 System.out.println(user.getUsername());
-                this.users.add(user);
+                if(!users.contains(user)) {
+                    users.add(user);
+                }
+            }
+        }
+    }
+
+    private void printMessages(Message[] messages) {
+        if(messages != null && messages.length > 0) {
+            System.out.println("Your messages:");
+            for(Message message : messages) {
+                if(!message.isOpened()) {
+                    System.out.print("*");
+                }
+                System.out.println(message.getTimestamp() + " " + getUsernameFromId(message.getSender()) + ": " + message.getMessage());
             }
         }
     }
@@ -427,6 +447,7 @@ public class App {
             for (RequestInfo request : requests) {
                 System.out.print(getUsernameFromId(request.getRequester()));
                 System.out.print(" (" + request.getRequesterColor().name() + "): ");
+                System.out.print("size " + request.getSize() + ", ");
                 System.out.println(request.getFirst().name() + " goes first");
             }
         }
@@ -454,7 +475,7 @@ public class App {
             else {
                 System.out.print(getUsernameFromId(info.getBlack()) + " (WHITE): ");
             }
-            System.out.print(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
+            System.out.println(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
 
             GameState state = getStateFromGameInfo(info);
             state.printBoard();
@@ -495,6 +516,34 @@ public class App {
         }
         else {
             System.out.println("Could not find any unread messages");
+        }
+    }
+
+    private void initializeUsers() {
+        User[] ifrequests = httpUtils.getIncomingFriendRequests();
+        User[] ofrequests = httpUtils.getOutgoingFriendRequests();
+        User[] friends = httpUtils.getFriends();
+        User[] blocks = httpUtils.getBlocking();
+
+        for(User user : ifrequests) {
+            if(!users.contains(user)) {
+                users.add(user);
+            }
+        }
+        for(User user : ofrequests) {
+            if(!users.contains(user)) {
+                users.add(user);
+            }
+        }
+        for(User user : friends) {
+            if(!users.contains(user)) {
+                users.add(user);
+            }
+        }
+        for(User user : blocks) {
+            if(!users.contains(user)) {
+                users.add(user);
+            }
         }
     }
 
