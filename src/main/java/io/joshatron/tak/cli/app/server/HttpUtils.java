@@ -99,6 +99,19 @@ public class HttpUtils {
         }
     }
 
+    private void processFailure(HttpResponse response) {
+        try {
+            String contents = EntityUtils.toString(response.getEntity());
+            JSONObject json = new JSONObject(contents);
+
+            if(json.getString("reason") != null) {
+                System.out.println("Operation could not be performed because of: " + json.getString("reason"));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static String getBasicAuthString(String username, String password) {
         return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
@@ -139,8 +152,8 @@ public class HttpUtils {
         return null;
     }
 
-    public boolean checkConnection() {
-        HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
+    public boolean isConnected() {
+        HttpGet request = new HttpGet(serverUrl + "/account/isAuthenticated");
         request.setHeader("Authorization", getBasicAuthString("test", "test"));
 
         try {
@@ -156,8 +169,8 @@ public class HttpUtils {
         return false;
     }
 
-    public boolean authenticate(String username, String password) {
-        HttpGet request = new HttpGet(serverUrl + "/account/authenticate");
+    public boolean isAuthenticated(String username, String password) {
+        HttpGet request = new HttpGet(serverUrl + "/account/isAuthenticated");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
@@ -166,6 +179,9 @@ public class HttpUtils {
                 this.username = username;
                 this.password = password;
                 return true;
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -189,6 +205,9 @@ public class HttpUtils {
                 this.password = password;
                 return true;
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -196,7 +215,7 @@ public class HttpUtils {
         return false;
     }
 
-    public boolean changePassword(String newPass) {
+    public void changePassword(String newPass) {
         HttpPost request = new HttpPost(serverUrl + "/account/changepass");
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -208,16 +227,17 @@ public class HttpUtils {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
                 this.password = newPass;
-                return true;
+                System.out.println("Password successfully changed");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean changeUsername(String newName) {
+    public void changeUsername(String newName) {
         HttpPost request = new HttpPost(serverUrl + "/account/changename");
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -229,13 +249,14 @@ public class HttpUtils {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
                 this.username = newName;
-                return true;
+                System.out.println("Username successfully changed");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
     public User[] getIncomingFriendRequests() {
@@ -254,6 +275,9 @@ public class HttpUtils {
                 }
 
                 return users.toArray(new User[0]);
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -279,6 +303,9 @@ public class HttpUtils {
 
                 return users.toArray(new User[0]);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -302,6 +329,9 @@ public class HttpUtils {
                 }
 
                 return users.toArray(new User[0]);
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -327,6 +357,9 @@ public class HttpUtils {
 
                 return users.toArray(new User[0]);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -334,39 +367,41 @@ public class HttpUtils {
         return null;
     }
 
-    public boolean createFriendRequest(String id) {
+    public void createFriendRequest(String id) {
         HttpPost request = new HttpPost(serverUrl + "/social/request/create/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Friend request created");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean deleteFriendRequest(String id) {
+    public void deleteFriendRequest(String id) {
         HttpDelete request = new HttpDelete(serverUrl + "/social/request/cancel/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Friend request deleted");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean respondToFriendRequest(String id, Answer answer) {
+    public void respondToFriendRequest(String id, Answer answer) {
         HttpPost request = new HttpPost(serverUrl + "/social/request/respond/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -377,84 +412,96 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                if(answer == Answer.ACCEPT) {
+                    System.out.println("Successfully accepted friend request");
+                }
+                else {
+                    System.out.println("Successfully denied friend request");
+                }
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean unfriendUser(String id) {
+    public void unfriendUser(String id) {
         HttpDelete request = new HttpDelete(serverUrl + "/social/user/" + id + "/unfriend");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("User unfriended");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean blockUser(String id) {
+    public void blockUser(String id) {
         HttpPost request = new HttpPost(serverUrl + "/social/user/" + id + "/block");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("User blocked");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean unblockUser(String id) {
+    public void unblockUser(String id) {
         HttpDelete request = new HttpDelete(serverUrl + "/social/user/" + id + "/unblock");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("User unblocked");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean sendMessage(String id, String text) {
+    public void sendMessage(String id, String text) {
         if(getUserFromUserId(id).getUsername().equalsIgnoreCase(username)) {
-            return false;
+            System.out.println("Cannot send message to yourself");
         }
-        HttpPost request = new HttpPost(serverUrl + "/social/message/send/" + id);
-        request.setHeader("Authorization", getBasicAuthString(username, password));
-        JSONObject body = new JSONObject();
-        body.put("text", text);
-        StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
-        request.setEntity(entity);
+        else {
+            HttpPost request = new HttpPost(serverUrl + "/social/message/send/" + id);
+            request.setHeader("Authorization", getBasicAuthString(username, password));
+            JSONObject body = new JSONObject();
+            body.put("text", text);
+            StringEntity entity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+            request.setEntity(entity);
 
-        try {
-            HttpResponse response = client.execute(request);
-            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+            try {
+                HttpResponse response = client.execute(request);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                    System.out.println("Message sent");
+                }
+                else {
+                    processFailure(response);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
-        return false;
     }
 
     public Message[] getUnreadMessages() {
@@ -476,6 +523,9 @@ public class HttpUtils {
                 }
 
                 return messages.toArray(new Message[0]);
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -504,6 +554,9 @@ public class HttpUtils {
 
                 return messages.toArray(new Message[0]);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -511,7 +564,7 @@ public class HttpUtils {
         return null;
     }
 
-    public boolean markAllRead() {
+    public void markAllRead() {
         HttpPost request = new HttpPost(serverUrl + "/social/message/markread");
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -521,16 +574,17 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("All messages marked as read");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean markReadFromSender(String sender) {
+    public void markReadFromSender(String sender) {
         HttpPost request = new HttpPost(serverUrl + "/social/message/markread");
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -543,13 +597,14 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Messages marked as read");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
     public RequestInfo[] getIncomingGameRequests() {
@@ -571,6 +626,9 @@ public class HttpUtils {
                 }
 
                 return requests.toArray(new RequestInfo[0]);
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -599,6 +657,9 @@ public class HttpUtils {
 
                 return requests.toArray(new RequestInfo[0]);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -606,7 +667,7 @@ public class HttpUtils {
         return null;
     }
 
-    public boolean requestGame(RequestInfo requestInfo) {
+    public void requestGame(RequestInfo requestInfo) {
         HttpPost request = new HttpPost(serverUrl + "/games/request/create/" + requestInfo.getAcceptor());
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -619,32 +680,34 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Game request created");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean cancelGameRequest(String id) {
+    public void cancelGameRequest(String id) {
         HttpDelete request = new HttpDelete(serverUrl + "/games/request/cancel/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Game request cancelled");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean respondToGameRequest(String id, Answer answer) {
+    public void respondToGameRequest(String id, Answer answer) {
         HttpPost request = new HttpPost(serverUrl + "/games/request/respond/" + id);
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -655,13 +718,19 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                if(answer == Answer.ACCEPT) {
+                    System.out.println("Game request accepted");
+                }
+                else {
+                    System.out.println("Game request denied");
+                }
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
     public int getRandomGameSize() {
@@ -673,6 +742,9 @@ public class HttpUtils {
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 return Integer.parseInt(EntityUtils.toString(response.getEntity()));
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -680,36 +752,38 @@ public class HttpUtils {
         return 0;
     }
 
-    public boolean createRandomGameRequest(int size) {
+    public void createRandomGameRequest(int size) {
         HttpPost request = new HttpPost(serverUrl + "/games/request/random/create/" + size);
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Created random game request");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
-    public boolean cancelRandomGameRequest() {
+    public void cancelRandomGameRequest() {
         HttpDelete request = new HttpDelete(serverUrl + "/games/request/random/cancel");
         request.setHeader("Authorization", getBasicAuthString(username, password));
 
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Cancelled random game request");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
     public GameInfo[] getOpenGames() {
@@ -739,6 +813,9 @@ public class HttpUtils {
                 }
 
                 return gameInfos.toArray(new GameInfo[0]);
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -775,6 +852,9 @@ public class HttpUtils {
 
                 return gameInfos.toArray(new GameInfo[0]);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -804,6 +884,9 @@ public class HttpUtils {
                         o.getInt("size"), Player.valueOf(o.getString("first")), Player.valueOf(o.getString("current")),
                         null, false, turns);
             }
+            else {
+                processFailure(response);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -811,7 +894,7 @@ public class HttpUtils {
         return null;
     }
 
-    public boolean playTurn(String gameId, String turn) {
+    public void playTurn(String gameId, String turn) {
         HttpPost request = new HttpPost(serverUrl + "/games/game/" + gameId + "/play");
         request.setHeader("Authorization", getBasicAuthString(username, password));
         JSONObject body = new JSONObject();
@@ -822,13 +905,14 @@ public class HttpUtils {
         try {
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                return true;
+                System.out.println("Turn successfully made");
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return false;
     }
 
     public SocialNotifications getSocialNotifications() {
@@ -841,6 +925,9 @@ public class HttpUtils {
                 String contents = EntityUtils.toString(response.getEntity());
                 JSONObject json = new JSONObject(contents);
                 return new SocialNotifications(json.getInt("incomingRequests"), json.getInt("incomingMessages"));
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -859,6 +946,9 @@ public class HttpUtils {
                 String contents = EntityUtils.toString(response.getEntity());
                 JSONObject json = new JSONObject(contents);
                 return new GameNotifications(json.getInt("incomingRequests"), json.getInt("pendingGames"));
+            }
+            else {
+                processFailure(response);
             }
         } catch (IOException e) {
             e.printStackTrace();

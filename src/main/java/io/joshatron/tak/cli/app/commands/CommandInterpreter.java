@@ -68,6 +68,7 @@ public class CommandInterpreter {
 
     private Completer createCompleter(List<User> users) {
         StringsCompleter noArgs = new StringsCompleter(
+                Action.CHANGE_PASSWORD.getShorthand(),
                 Action.INCOMING_FRIEND_REQUESTS.getShorthand(),
                 Action.OUTGOING_FRIEND_REQUESTS.getShorthand(),
                 Action.LIST_FRIENDS.getShorthand(),
@@ -85,7 +86,6 @@ public class CommandInterpreter {
                 Action.LOGOUT.getShorthand(),
                 Action.EXIT.getShorthand());
         StringsCompleter oneArg = new StringsCompleter(
-                Action.CHANGE_PASSWORD.getShorthand(),
                 Action.CHANGE_USERNAME.getShorthand(),
                 Action.LOGIN.getShorthand());
         StringsCompleter oneNameArg = new StringsCompleter(
