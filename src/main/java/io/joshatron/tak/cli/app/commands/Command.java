@@ -7,5 +7,9 @@ import lombok.Data;
 @AllArgsConstructor
 public class Command {
     private Action action;
-    private String[] arguments;
+    private String[] args;
+
+    public String getArg(int index) {
+        return args[index];
+    }
 }

@@ -10,15 +10,15 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CommandInterpreter {
 
     private LineReader commandReader;
 
-    public CommandInterpreter(ArrayList<User> users) throws IOException {
+    public CommandInterpreter(List<User> users) throws IOException {
         commandReader = LineReaderBuilder.builder()
                 .terminal(TerminalBuilder.terminal())
                 .completer(createCompleter(users))
@@ -38,15 +38,16 @@ public class CommandInterpreter {
         }
 
         //remove command from input
-        input = input.substring(action.getShorthand().length());
-        String[] args;
-        if(action == Action.SEND_MESSAGE) {
-            String user = input.split(" ")[0];
-            input = input.substring(user.length());
-            args = new String[]{input};
-        }
-        else {
-            args = input.split(" ");
+        String[] args = null;
+        if(input.length() > action.getShorthand().length()) {
+            input = input.substring(action.getShorthand().length() + 1);
+            if (action == Action.SEND_MESSAGE) {
+                String user = input.split(" ")[0];
+                input = input.substring(user.length());
+                args = new String[]{input};
+            } else {
+                args = input.split(" ");
+            }
         }
 
         Command command = new Command(action, args);
@@ -55,7 +56,7 @@ public class CommandInterpreter {
             return command;
         }
         else {
-            System.out.println("The command arguments are invalid. Please type 'help' to see the proper syntax");
+            System.out.println("The command args are invalid. Please type 'help' to see the proper syntax");
             return null;
         }
     }
@@ -65,7 +66,7 @@ public class CommandInterpreter {
         return true;
     }
 
-    private Completer createCompleter(ArrayList<User> users) {
+    private Completer createCompleter(List<User> users) {
         StringsCompleter noArgs = new StringsCompleter(
                 Action.INCOMING_FRIEND_REQUESTS.getShorthand(),
                 Action.OUTGOING_FRIEND_REQUESTS.getShorthand(),

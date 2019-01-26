@@ -12,9 +12,9 @@ import java.util.List;
 
 public class UsernameCompleter implements Completer {
 
-    private ArrayList<User> users;
+    private List<User> users;
 
-    public UsernameCompleter(ArrayList<User> users) {
+    public UsernameCompleter(List<User> users) {
         this.users = users;
     }
 
