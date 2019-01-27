@@ -13,6 +13,9 @@ public class HumanPlayer implements TakPlayer
         Scanner reader = new Scanner(System.in);
 
         state.printBoard();
+        if(state.inTak()) {
+            System.out.println("You are in tak");
+        }
         while(true) {
             if (state.isWhiteTurn()) {
                 System.out.print("White move: ");

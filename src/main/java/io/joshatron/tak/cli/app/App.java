@@ -43,7 +43,6 @@ public class App {
             httpUtils = new HttpUtils(config.getServerUrl());
             if(config.getUsername() != null && !config.getUsername().isEmpty()) {
                 authenticate(config.getUsername());
-                online = true;
             }
         }
     }
@@ -462,7 +461,7 @@ public class App {
                 } else {
                     System.out.print(getUsernameFromId(info.getWhite()) + " (WHITE): ");
                 }
-                System.out.println(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
+                System.out.println("size- " + info.getSize() + ", first- " + info.getFirst() + ", current- " + info.getCurrent());
             }
         }
     }
@@ -475,7 +474,7 @@ public class App {
             else {
                 System.out.print(getUsernameFromId(info.getBlack()) + " (WHITE): ");
             }
-            System.out.println(info.getSize() + " first: " + info.getFirst() + ", current: " + info.getCurrent());
+            System.out.println("size- " + info.getSize() + ", first- " + info.getFirst() + ", current- " + info.getCurrent());
 
             GameState state = getStateFromGameInfo(info);
             state.printBoard();
