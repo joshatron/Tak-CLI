@@ -23,6 +23,7 @@ import org.jline.terminal.TerminalBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class App {
 
@@ -504,12 +505,12 @@ public class App {
             }
 
             System.out.println("Users who have sent you messages:");
-            for(String key : map.keySet()) {
-                if(map.get(key) > 1) {
-                    System.out.println(getUsernameFromId(key) + ": " + map.get(key) + " unread messages");
+            for(Map.Entry<String, Integer> entry : map.entrySet()) {
+                if(entry.getValue() > 1) {
+                    System.out.println(getUsernameFromId(entry.getKey()) + ": " + entry.getValue() + " unread messages");
                 }
                 else {
-                    System.out.println(getUsernameFromId(key) + ": 1 unread message");
+                    System.out.println(getUsernameFromId(entry.getKey()) + ": 1 unread message");
                 }
             }
         }
