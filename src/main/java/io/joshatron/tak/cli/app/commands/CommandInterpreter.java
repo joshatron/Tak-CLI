@@ -38,7 +38,7 @@ public class CommandInterpreter {
         }
 
         //remove command from input
-        String[] args = null;
+        String[] args = new String[0];
         if(input.length() > action.getShorthand().length()) {
             input = input.substring(action.getShorthand().length() + 1);
             if (action == Action.SEND_MESSAGE) {
