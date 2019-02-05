@@ -5,6 +5,7 @@ import io.joshatron.tak.cli.app.commands.Command;
 import io.joshatron.tak.cli.app.commands.CommandInterpreter;
 import io.joshatron.tak.cli.app.local.HumanPlayer;
 import io.joshatron.tak.cli.app.local.LocalPlay;
+import io.joshatron.tak.cli.app.local.Tutorial;
 import io.joshatron.tak.cli.app.server.HttpUtils;
 import io.joshatron.tak.cli.app.server.ServerConfig;
 import io.joshatron.tak.cli.app.server.request.Answer;
@@ -198,6 +199,9 @@ public class App {
                             System.out.println(getOfflineHelp());
                         }
                         break;
+                    case TUTORIAL:
+                        Tutorial.play();
+                        break;
                     case LOGIN:
                         authenticate(command.getArg(0));
                         break;
@@ -302,7 +306,7 @@ public class App {
 
     private boolean isOnlineCommand(Action action) {
         return (action != Action.LOCAL_GAME && action != Action.CONNECT_TO_SERVER && action != Action.LOGIN &&
-                action != Action.HELP && action != Action.EXIT);
+                action != Action.HELP  && action != Action.TUTORIAL && action != Action.EXIT);
     }
 
     private String createOnlinePrompt() {
@@ -391,6 +395,8 @@ public class App {
         stringBuilder.append(" {server url}- connect to the server specified\n  ");
         stringBuilder.append(Action.HELP.getShorthand());
         stringBuilder.append("- display this help message\n  ");
+        stringBuilder.append(Action.TUTORIAL.getShorthand());
+        stringBuilder.append("- runs through a tutorial on how to play the game\n  ");
         stringBuilder.append(Action.LOGIN.getShorthand());
         stringBuilder.append(" {username}- logs into the server\n  ");
         stringBuilder.append(Action.LOGOUT.getShorthand());
@@ -413,6 +419,8 @@ public class App {
         stringBuilder.append(" {username}- logs into the server\n  ");
         stringBuilder.append(Action.HELP.getShorthand());
         stringBuilder.append("- display this help message\n  ");
+        stringBuilder.append(Action.TUTORIAL.getShorthand());
+        stringBuilder.append("- runs through a tutorial on how to play the game\n  ");
         stringBuilder.append(Action.EXIT.getShorthand());
         stringBuilder.append("- exits back to the main menu\n");
 

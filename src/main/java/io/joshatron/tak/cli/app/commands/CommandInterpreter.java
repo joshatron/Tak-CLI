@@ -79,6 +79,7 @@ public class CommandInterpreter {
             case GET_GAMES_MY_TURN:
             case FORGET_SERVER:
             case HELP:
+            case TUTORIAL:
             case LOGOUT:
             case EXIT:
                 return command.getArgs().length == 0;
@@ -93,6 +94,7 @@ public class CommandInterpreter {
             case BLOCK:
             case UNBLOCK:
             case MESSAGES_FROM_USER:
+            case CANCEL_GAME_REQUEST:
             case ACCEPT_GAME_REQUEST:
             case DENY_GAME_REQUEST:
             case GET_GAME:
@@ -178,6 +180,7 @@ public class CommandInterpreter {
                 Action.CONNECT_TO_SERVER.getShorthand(),
                 Action.FORGET_SERVER.getShorthand(),
                 Action.HELP.getShorthand(),
+                Action.TUTORIAL.getShorthand(),
                 Action.LOGOUT.getShorthand(),
                 Action.EXIT.getShorthand());
         StringsCompleter oneArg = new StringsCompleter(
