@@ -5,7 +5,6 @@ import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
-import org.jline.utils.AttributedString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,8 @@ public class TurnCompleter implements Completer {
 
             List<String> possible = turns.stream().filter(element -> element.startsWith(parsedLine.line())).collect(Collectors.toList());
             for(String turn : possible) {
-                candidates.add(new Candidate(AttributedString.stripAnsi(turn), turn, null, null, null, null, true));
+                String option = turn.split(" ")[parsedLine.words().size() - 1];
+                candidates.add(new Candidate(option, option, null, null, null, null, true));
             }
 
             list.addAll(candidates);
