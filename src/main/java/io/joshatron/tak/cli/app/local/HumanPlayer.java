@@ -1,5 +1,6 @@
 package io.joshatron.tak.cli.app.local;
 
+import io.joshatron.tak.engine.exception.TakEngineException;
 import io.joshatron.tak.engine.game.GameState;
 import io.joshatron.tak.engine.player.TakPlayer;
 import io.joshatron.tak.engine.turn.Turn;
@@ -9,7 +10,7 @@ import java.util.Scanner;
 
 public class HumanPlayer implements TakPlayer
 {
-    public Turn getTurn(GameState state) {
+    public Turn getTurn(GameState state) throws TakEngineException {
         Scanner reader = new Scanner(System.in);
 
         state.printBoard();
