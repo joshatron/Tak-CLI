@@ -1,6 +1,7 @@
 package io.joshatron.tak.cli.app.local;
 
 import io.joshatron.tak.cli.app.commands.TurnCompleter;
+import io.joshatron.tak.engine.exception.TakEngineException;
 import io.joshatron.tak.engine.game.GameState;
 import io.joshatron.tak.engine.player.TakPlayer;
 import io.joshatron.tak.engine.turn.Turn;
@@ -62,7 +63,7 @@ public class HumanPlayer implements TakPlayer
                 }
             }
         }
-        catch(IOException e) {
+        catch(IOException | TakEngineException e) {
             e.printStackTrace();
             return null;
         }
